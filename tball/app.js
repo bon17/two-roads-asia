@@ -123,7 +123,7 @@ function LocalDB() {
     async get(p) { return read(p); },
     async remove(p) { write(p, null); notify(); },
     on(p, cb) { const l = { p, cb, last: undefined }; listeners.push(l); setTimeout(notify, 0); return () => { listeners = listeners.filter(x => x !== l); }; },
-    presence() { },
+    presence() { return () => { }; },
     now() { return Date.now(); },
   };
 }
@@ -142,7 +142,8 @@ async function FirebaseDB(cfg) {
     on: (p, cb) => F.onValue(F.ref(db, p), s => cb(s.val())),
     presence(p) {
       const r = F.ref(db, p);
-      F.onValue(F.ref(db, ".info/connected"), s => { if (s.val()) { F.onDisconnect(r).set(false); F.set(r, true); } });
+      const un = F.onValue(F.ref(db, ".info/connected"), s => { if (s.val()) { F.onDisconnect(r).set(false); F.set(r, true); } });
+      return () => { un(); F.onDisconnect(r).cancel(); };
     },
     now: () => Date.now() + offset,
   };
@@ -221,7 +222,7 @@ async function hostStart() {
   H.order = shuffled(QS.map(q => q.id), hashStr(code + ":" + Date.now()));
   renderJoin();
   H.db.on(`rooms/${code}/state`, v => { H.st = normState(v); watchAnswers(); renderHost(); });
-  H.db.on(`rooms/${code}/players`, v => { H.players = v || {}; assignTeams(); renderHost(); });
+  H.db.on(`rooms/${code}/players`, v => { H.players = Object.fromEntries(Object.entries(v || {}).filter(([, p]) => p && p.joinedAt)); assignTeams(); renderHost(); });
   H.db.on(`rooms/${code}/cardReq`, v => { if (v) handleCardReq(v); });
   setInterval(hostTick, 250);
   setupRules();
@@ -252,6 +253,15 @@ async function assignTeams() {
 function moveTeam(id) {
   const p = H.players[id]; if (!p) return;
   H.db.update(R("players"), { [`${id}/team`]: other(p.team) });
+}
+async function kickPlayer(id) {
+  if (!confirm(`${id} 학생을 내보낼까요?\n그 학생 태블릿은 학번 입력 화면으로 돌아가서 다시 입장해요.`)) return;
+  const p = H.players[id];
+  await H.db.remove(R(`players/${id}`));
+  delete H.players[id];
+  // 수비 주장이었으면 같은 팀에서 새로 뽑는다
+  const s = H.st;
+  if (p && p.team && s.started && s.captain[p.team] === id) await putState({ captain: Object.assign({}, s.captain, { [p.team]: randomCaptain(p.team) }) });
 }
 
 function watchAnswers() {
@@ -472,7 +482,7 @@ function rulePages() {
       <tr><td>💡 해설</td><td>해설 창을 닫거나 다시 열어요</td><td>판정 뒤</td></tr>
       <tr><td>다음 투구 ▶</td><td>다음 문제 (아웃 3개면 '공수 교대 ▶'로 바뀌어요)</td><td>판정 뒤</td></tr>
       <tr><td>⚾ 투구</td><td>공수 교대 뒤 첫 문제를 내요</td><td>공수 교대 뒤</td></tr>
-      <tr><td>👥 학생 관리</td><td>이름표를 눌러 학생을 다른 팀으로 옮겨요</td><td>경기 중</td></tr>
+      <tr><td>👥 학생 관리</td><td>이름표를 누르면 팀 이동, 옆의 ✕를 누르면 내보내기(학생이 다시 입장)</td><td>언제나</td></tr>
       <tr><td>🏁 마지막 회</td><td>이번 회가 끝나면 경기 종료 (다시 누르면 취소)</td><td>경기 중</td></tr>
       <tr><td>경기 끝</td><td>바로 끝내고 결과 보기</td><td>경기 중</td></tr>
       <tr><td>새 경기</td><td>점수를 지우고 다시 (학생은 그대로)</td><td>끝난 뒤</td></tr>
@@ -528,8 +538,12 @@ function renderJoin() {
   } catch (e) { $("#hQR").textContent = "QR을 만들 수 없어요"; }
 }
 function chip(p) {
+  const w = mk("span", "chipwrap");
   const b = mk("button", "chip" + (p.online === false ? " off" : ""), p.id);
-  b.title = "다른 팀으로 옮기기"; b.onclick = () => moveTeam(p.id); return b;
+  b.title = "다른 팀으로 옮기기"; b.onclick = () => moveTeam(p.id);
+  const x = mk("button", "chipx", "✕"); x.title = "내보내기 (다시 입장)"; x.setAttribute("aria-label", `${p.id} 내보내기`);
+  x.onclick = () => kickPlayer(p.id);
+  w.append(b, x); return w;
 }
 function renderRoster() {
   for (const t of ["cn", "jp"]) {
@@ -775,17 +789,37 @@ async function join() {
     if (!(await openRoom(code))) { err.textContent = "그런 방이 없어요. 방 번호를 다시 넣어 주세요"; S.step = "room"; renderJoinStep(); return; }
     S.code = code; store.set("room", code); store.set("sid", id);
     await S.db.update(`rooms/${code}/players/${id}`, { online: true, joinedAt: S.db.now() });
-    S.db.presence(`rooms/${code}/players/${id}/online`);
-    show("#sJoin", false); show("#sTop", true);
-    S.db.on(`rooms/${code}/players`, v => { S.players = v || {}; S.me = S.players[id] || null; renderStudent(); });
-    S.db.on(`rooms/${code}/state`, v => { S.st = normState(v); watchMyAnswer(); renderStudent(); });
-    setInterval(tickStudent, 250);
+    S.stopPres = S.db.presence(`rooms/${code}/players/${id}/online`);
+    S.seen = false;
+    show("#sJoin", false); show("#sTop", true); show("#sNotice", false);
+    S.unP = S.db.on(`rooms/${code}/players`, v => {
+      S.players = v || {}; const mine = S.players[id];
+      if (mine && mine.joinedAt) { S.seen = true; S.me = mine; }
+      else if (S.seen) { kicked(mine); return; }
+      else S.me = null;
+      renderStudent();
+    });
+    S.unS = S.db.on(`rooms/${code}/state`, v => { S.st = normState(v); watchMyAnswer(); renderStudent(); });
+    S.tick = setInterval(tickStudent, 250);
   } catch (e) {
     S.db = null;
     err.textContent = "연결에 실패했어요. 다시 눌러 주세요. (" + explain(e) + ")";
   } finally { S.busyJoin = false; $("#sNext").disabled = false; }
 }
 const SR = p => `rooms/${S.code}/${p}`;
+/* 선생님이 내보냈을 때: 연결을 정리하고 학번 입력 화면으로 */
+function kicked(ghost) {
+  const code = S.code, id = S.id;
+  try { S.stopPres && S.stopPres(); } catch (e) { }
+  [S.unP, S.unS, S.unAns].forEach(u => { try { u && u(); } catch (e) { } });
+  clearInterval(S.tick);
+  if (ghost) S.db.remove(`rooms/${code}/players/${id}`).catch(() => { });   // 연결이 끊겼다 이어지며 남은 빈 이름표 정리
+  Object.assign(S, { code: "", me: null, seen: false, players: {}, st: normState(null), myAns: null, ansKey: "", unP: null, unS: null, unAns: null, stopPres: null, orderPick: [] });
+  ["#sWait", "#sQ", "#sSent", "#sReveal", "#sOver", "#sTop", "#sExModal", "#sCardModal", "#sRulesModal"].forEach(x => show(x, false));
+  store.set("sid", "");
+  S.id = ""; S.step = "id"; show("#sJoin", true); renderJoinStep();
+  $("#sNotice").textContent = "🔄 선생님이 다시 입장하라고 했어요. 내 학번을 다시 눌러 주세요."; show("#sNotice", true);
+}
 function watchMyAnswer() {
   const key = S.st.q ? ansKey(S.st) : "";
   if (key === S.ansKey) return;

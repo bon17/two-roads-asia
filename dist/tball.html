@@ -55,6 +55,7 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
 .steps span.done{opacity:.5}
 .ask{font-size:26px!important;margin:10px 0 0!important}
 .roomchip{display:inline-block;font-size:20px;background:#e8f7ee;border:3px solid var(--ink);border-radius:999px;padding:4px 14px;margin-top:4px}
+.notice{font-size:22px;line-height:1.4;background:#fff1b8;border:3px solid var(--ink);border-radius:16px;padding:10px 14px;margin:10px 0 0}
 .linkbtn{font-family:inherit;background:none;border:none;font-size:20px;text-decoration:underline;margin-top:14px;min-height:48px;opacity:.8}
 .timerbar{height:16px;border:3px solid var(--ink);border-radius:999px;overflow:hidden;background:#fff}
 .timerbar i{display:block;height:100%;background:var(--gold);transition:width .25s linear}
@@ -194,6 +195,8 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
 .chip{font-family:inherit;font-size:1.6em;border:.15em solid var(--ink);border-radius:999px;padding:.15em .7em;background:#fff}
 .roster.cn .chip{background:var(--cn-soft)} .roster.jp .chip{background:var(--jp-soft)}
 .chip.off{opacity:.4}
+.chipwrap{display:inline-flex;align-items:center}
+.chipx{font-family:inherit;font-size:1.2em;width:1.9em;height:1.9em;border-radius:50%;border:.15em solid var(--ink);background:#fff;margin-left:-.35em;line-height:1;padding:0;color:#d62828}
 .hint{font-size:1.2em;opacity:.7}
 /* 테스트 모드 창 */
 #test{position:fixed;inset:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,34%);gap:10px;padding:10px 10px var(--badge)}
@@ -235,6 +238,7 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
     <h2>⚾ 역사 티볼 리그</h2>
     <div class="steps" id="sSteps"><span id="sStep1">① 방 번호</span><span>›</span><span id="sStep2">② 내 학번</span></div>
     <div class="roomchip hidden" id="sRoomChip"></div>
+    <div class="notice hidden" id="sNotice"></div>
     <p class="ask" id="sAsk"></p>
     <div class="idview" id="sView">____</div>
     <div class="keypad" id="sKeypad"></div>
@@ -332,9 +336,9 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
       <div class="url" id="hUrl"></div>
     </div>
     <div class="box roster cn"><div class="head"><img data-img="team_cn" alt=""><span><span data-team="cn"></span> <span id="hCnCount">0</span>명</span></div>
-      <div class="hint">이름표를 누르면 다른 팀으로 옮겨요</div><div class="chips" id="hCnList"></div></div>
+      <div class="hint">이름표를 누르면 팀 이동 · ✕를 누르면 내보내기(다시 입장)</div><div class="chips" id="hCnList"></div></div>
     <div class="box roster jp"><div class="head"><img data-img="team_jp" alt=""><span><span data-team="jp"></span> <span id="hJpCount">0</span>명</span></div>
-      <div class="hint">이름표를 누르면 다른 팀으로 옮겨요</div><div class="chips" id="hJpList"></div></div>
+      <div class="hint">이름표를 누르면 팀 이동 · ✕를 누르면 내보내기(다시 입장)</div><div class="chips" id="hJpList"></div></div>
   </div>
 
   <!-- 경기 -->
@@ -3106,7 +3110,7 @@ function LocalDB() {
     async get(p) { return read(p); },
     async remove(p) { write(p, null); notify(); },
     on(p, cb) { const l = { p, cb, last: undefined }; listeners.push(l); setTimeout(notify, 0); return () => { listeners = listeners.filter(x => x !== l); }; },
-    presence() { },
+    presence() { return () => { }; },
     now() { return Date.now(); },
   };
 }
@@ -3125,7 +3129,8 @@ async function FirebaseDB(cfg) {
     on: (p, cb) => F.onValue(F.ref(db, p), s => cb(s.val())),
     presence(p) {
       const r = F.ref(db, p);
-      F.onValue(F.ref(db, ".info/connected"), s => { if (s.val()) { F.onDisconnect(r).set(false); F.set(r, true); } });
+      const un = F.onValue(F.ref(db, ".info/connected"), s => { if (s.val()) { F.onDisconnect(r).set(false); F.set(r, true); } });
+      return () => { un(); F.onDisconnect(r).cancel(); };
     },
     now: () => Date.now() + offset,
   };
@@ -3204,7 +3209,7 @@ async function hostStart() {
   H.order = shuffled(QS.map(q => q.id), hashStr(code + ":" + Date.now()));
   renderJoin();
   H.db.on(`rooms/${code}/state`, v => { H.st = normState(v); watchAnswers(); renderHost(); });
-  H.db.on(`rooms/${code}/players`, v => { H.players = v || {}; assignTeams(); renderHost(); });
+  H.db.on(`rooms/${code}/players`, v => { H.players = Object.fromEntries(Object.entries(v || {}).filter(([, p]) => p && p.joinedAt)); assignTeams(); renderHost(); });
   H.db.on(`rooms/${code}/cardReq`, v => { if (v) handleCardReq(v); });
   setInterval(hostTick, 250);
   setupRules();
@@ -3235,6 +3240,15 @@ async function assignTeams() {
 function moveTeam(id) {
   const p = H.players[id]; if (!p) return;
   H.db.update(R("players"), { [`${id}/team`]: other(p.team) });
+}
+async function kickPlayer(id) {
+  if (!confirm(`${id} 학생을 내보낼까요?\n그 학생 태블릿은 학번 입력 화면으로 돌아가서 다시 입장해요.`)) return;
+  const p = H.players[id];
+  await H.db.remove(R(`players/${id}`));
+  delete H.players[id];
+  // 수비 주장이었으면 같은 팀에서 새로 뽑는다
+  const s = H.st;
+  if (p && p.team && s.started && s.captain[p.team] === id) await putState({ captain: Object.assign({}, s.captain, { [p.team]: randomCaptain(p.team) }) });
 }
 
 function watchAnswers() {
@@ -3455,7 +3469,7 @@ function rulePages() {
       <tr><td>💡 해설</td><td>해설 창을 닫거나 다시 열어요</td><td>판정 뒤</td></tr>
       <tr><td>다음 투구 ▶</td><td>다음 문제 (아웃 3개면 '공수 교대 ▶'로 바뀌어요)</td><td>판정 뒤</td></tr>
       <tr><td>⚾ 투구</td><td>공수 교대 뒤 첫 문제를 내요</td><td>공수 교대 뒤</td></tr>
-      <tr><td>👥 학생 관리</td><td>이름표를 눌러 학생을 다른 팀으로 옮겨요</td><td>경기 중</td></tr>
+      <tr><td>👥 학생 관리</td><td>이름표를 누르면 팀 이동, 옆의 ✕를 누르면 내보내기(학생이 다시 입장)</td><td>언제나</td></tr>
       <tr><td>🏁 마지막 회</td><td>이번 회가 끝나면 경기 종료 (다시 누르면 취소)</td><td>경기 중</td></tr>
       <tr><td>경기 끝</td><td>바로 끝내고 결과 보기</td><td>경기 중</td></tr>
       <tr><td>새 경기</td><td>점수를 지우고 다시 (학생은 그대로)</td><td>끝난 뒤</td></tr>
@@ -3511,8 +3525,12 @@ function renderJoin() {
   } catch (e) { $("#hQR").textContent = "QR을 만들 수 없어요"; }
 }
 function chip(p) {
+  const w = mk("span", "chipwrap");
   const b = mk("button", "chip" + (p.online === false ? " off" : ""), p.id);
-  b.title = "다른 팀으로 옮기기"; b.onclick = () => moveTeam(p.id); return b;
+  b.title = "다른 팀으로 옮기기"; b.onclick = () => moveTeam(p.id);
+  const x = mk("button", "chipx", "✕"); x.title = "내보내기 (다시 입장)"; x.setAttribute("aria-label", `${p.id} 내보내기`);
+  x.onclick = () => kickPlayer(p.id);
+  w.append(b, x); return w;
 }
 function renderRoster() {
   for (const t of ["cn", "jp"]) {
@@ -3758,17 +3776,37 @@ async function join() {
     if (!(await openRoom(code))) { err.textContent = "그런 방이 없어요. 방 번호를 다시 넣어 주세요"; S.step = "room"; renderJoinStep(); return; }
     S.code = code; store.set("room", code); store.set("sid", id);
     await S.db.update(`rooms/${code}/players/${id}`, { online: true, joinedAt: S.db.now() });
-    S.db.presence(`rooms/${code}/players/${id}/online`);
-    show("#sJoin", false); show("#sTop", true);
-    S.db.on(`rooms/${code}/players`, v => { S.players = v || {}; S.me = S.players[id] || null; renderStudent(); });
-    S.db.on(`rooms/${code}/state`, v => { S.st = normState(v); watchMyAnswer(); renderStudent(); });
-    setInterval(tickStudent, 250);
+    S.stopPres = S.db.presence(`rooms/${code}/players/${id}/online`);
+    S.seen = false;
+    show("#sJoin", false); show("#sTop", true); show("#sNotice", false);
+    S.unP = S.db.on(`rooms/${code}/players`, v => {
+      S.players = v || {}; const mine = S.players[id];
+      if (mine && mine.joinedAt) { S.seen = true; S.me = mine; }
+      else if (S.seen) { kicked(mine); return; }
+      else S.me = null;
+      renderStudent();
+    });
+    S.unS = S.db.on(`rooms/${code}/state`, v => { S.st = normState(v); watchMyAnswer(); renderStudent(); });
+    S.tick = setInterval(tickStudent, 250);
   } catch (e) {
     S.db = null;
     err.textContent = "연결에 실패했어요. 다시 눌러 주세요. (" + explain(e) + ")";
   } finally { S.busyJoin = false; $("#sNext").disabled = false; }
 }
 const SR = p => `rooms/${S.code}/${p}`;
+/* 선생님이 내보냈을 때: 연결을 정리하고 학번 입력 화면으로 */
+function kicked(ghost) {
+  const code = S.code, id = S.id;
+  try { S.stopPres && S.stopPres(); } catch (e) { }
+  [S.unP, S.unS, S.unAns].forEach(u => { try { u && u(); } catch (e) { } });
+  clearInterval(S.tick);
+  if (ghost) S.db.remove(`rooms/${code}/players/${id}`).catch(() => { });   // 연결이 끊겼다 이어지며 남은 빈 이름표 정리
+  Object.assign(S, { code: "", me: null, seen: false, players: {}, st: normState(null), myAns: null, ansKey: "", unP: null, unS: null, unAns: null, stopPres: null, orderPick: [] });
+  ["#sWait", "#sQ", "#sSent", "#sReveal", "#sOver", "#sTop", "#sExModal", "#sCardModal", "#sRulesModal"].forEach(x => show(x, false));
+  store.set("sid", "");
+  S.id = ""; S.step = "id"; show("#sJoin", true); renderJoinStep();
+  $("#sNotice").textContent = "🔄 선생님이 다시 입장하라고 했어요. 내 학번을 다시 눌러 주세요."; show("#sNotice", true);
+}
 function watchMyAnswer() {
   const key = S.st.q ? ansKey(S.st) : "";
   if (key === S.ansKey) return;

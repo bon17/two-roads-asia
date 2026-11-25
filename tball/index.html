@@ -55,6 +55,7 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
 .steps span.done{opacity:.5}
 .ask{font-size:26px!important;margin:10px 0 0!important}
 .roomchip{display:inline-block;font-size:20px;background:#e8f7ee;border:3px solid var(--ink);border-radius:999px;padding:4px 14px;margin-top:4px}
+.notice{font-size:22px;line-height:1.4;background:#fff1b8;border:3px solid var(--ink);border-radius:16px;padding:10px 14px;margin:10px 0 0}
 .linkbtn{font-family:inherit;background:none;border:none;font-size:20px;text-decoration:underline;margin-top:14px;min-height:48px;opacity:.8}
 .timerbar{height:16px;border:3px solid var(--ink);border-radius:999px;overflow:hidden;background:#fff}
 .timerbar i{display:block;height:100%;background:var(--gold);transition:width .25s linear}
@@ -194,6 +195,8 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
 .chip{font-family:inherit;font-size:1.6em;border:.15em solid var(--ink);border-radius:999px;padding:.15em .7em;background:#fff}
 .roster.cn .chip{background:var(--cn-soft)} .roster.jp .chip{background:var(--jp-soft)}
 .chip.off{opacity:.4}
+.chipwrap{display:inline-flex;align-items:center}
+.chipx{font-family:inherit;font-size:1.2em;width:1.9em;height:1.9em;border-radius:50%;border:.15em solid var(--ink);background:#fff;margin-left:-.35em;line-height:1;padding:0;color:#d62828}
 .hint{font-size:1.2em;opacity:.7}
 /* 테스트 모드 창 */
 #test{position:fixed;inset:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,34%);gap:10px;padding:10px 10px var(--badge)}
@@ -235,6 +238,7 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
     <h2>⚾ 역사 티볼 리그</h2>
     <div class="steps" id="sSteps"><span id="sStep1">① 방 번호</span><span>›</span><span id="sStep2">② 내 학번</span></div>
     <div class="roomchip hidden" id="sRoomChip"></div>
+    <div class="notice hidden" id="sNotice"></div>
     <p class="ask" id="sAsk"></p>
     <div class="idview" id="sView">____</div>
     <div class="keypad" id="sKeypad"></div>
@@ -332,9 +336,9 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
       <div class="url" id="hUrl"></div>
     </div>
     <div class="box roster cn"><div class="head"><img data-img="team_cn" alt=""><span><span data-team="cn"></span> <span id="hCnCount">0</span>명</span></div>
-      <div class="hint">이름표를 누르면 다른 팀으로 옮겨요</div><div class="chips" id="hCnList"></div></div>
+      <div class="hint">이름표를 누르면 팀 이동 · ✕를 누르면 내보내기(다시 입장)</div><div class="chips" id="hCnList"></div></div>
     <div class="box roster jp"><div class="head"><img data-img="team_jp" alt=""><span><span data-team="jp"></span> <span id="hJpCount">0</span>명</span></div>
-      <div class="hint">이름표를 누르면 다른 팀으로 옮겨요</div><div class="chips" id="hJpList"></div></div>
+      <div class="hint">이름표를 누르면 팀 이동 · ✕를 누르면 내보내기(다시 입장)</div><div class="chips" id="hJpList"></div></div>
   </div>
 
   <!-- 경기 -->
