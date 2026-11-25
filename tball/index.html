@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>역사 티볼 리그</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#3b2a20; --paper:#fffaf0; --card:#fff; --gold:#ffc93c;
+  --cn:#ff4b4b; --cn-soft:#ffe1e1; --jp:#2f7bff; --jp-soft:#dfeaff;
+  --ok:#22b35e; --bad:#ff5a5a; --sky1:#bfe8ff; --sky2:#fff3c4;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{font-family:Jua,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);
+  background:linear-gradient(170deg,var(--sky1),var(--sky2));background-attachment:fixed;user-select:none;-webkit-user-select:none}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.45}
+.hidden{display:none!important}
+.box{background:var(--card);border:4px solid var(--ink);border-radius:24px;box-shadow:0 6px 0 rgba(59,42,32,.25)}
+.btn{border:4px solid var(--ink);border-radius:20px;background:var(--card);box-shadow:0 5px 0 rgba(59,42,32,.3);
+  min-height:64px;padding:0 20px;font-size:24px}
+.btn:active:not(:disabled){transform:translateY(4px);box-shadow:0 1px 0 rgba(59,42,32,.3)}
+.btn.gold{background:var(--gold)}
+.btn.cn{background:var(--cn);color:#fff}
+.btn.jp{background:var(--jp);color:#fff}
+.mode-banner{position:fixed;left:50%;bottom:6px;transform:translateX(-50%);z-index:50;background:#fff7d6;border:3px solid var(--ink);
+  border-radius:999px;padding:4px 14px;font-size:14px;white-space:nowrap;pointer-events:none}
+.t-cn{color:var(--cn)} .t-jp{color:var(--jp)}
+
+/* =================== 학생 화면 =================== */
+#student{max-width:760px;margin:0 auto;padding:14px 14px 48px;min-height:100vh;display:flex;flex-direction:column;gap:14px}
+.s-top{display:flex;align-items:center;gap:10px;padding:8px 12px}
+.s-top img{width:54px;height:54px;border-radius:50%}
+.s-top .who{font-size:24px;flex:1}
+.s-top .sc{font-size:20px;text-align:right;line-height:1.2}
+.s-screen{padding:20px;text-align:center}
+.s-screen h2{font-size:32px;margin:6px 0 10px}
+.s-screen p{font-size:20px;margin:8px 0;line-height:1.45}
+.big-emblem{width:min(46vw,220px);height:min(46vw,220px);border-radius:50%;margin:6px auto;display:block}
+.team-name{font-size:44px;margin:4px 0}
+input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-width:320px;border:4px solid var(--ink);border-radius:18px;
+  padding:10px;letter-spacing:.3em}
+.idview{font-size:56px;letter-spacing:.25em;margin:8px 0 4px;min-height:72px}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:380px;margin:10px auto}
+.keypad button{min-height:90px;font-size:38px;border:4px solid var(--ink);border-radius:20px;background:#fff;box-shadow:0 5px 0 rgba(59,42,32,.25)}
+.keypad button:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(59,42,32,.25)}
+.err{color:#d62828;font-size:19px;min-height:26px}
+.timerbar{height:16px;border:3px solid var(--ink);border-radius:999px;overflow:hidden;background:#fff}
+.timerbar i{display:block;height:100%;background:var(--gold);transition:width .25s linear}
+.qtext{font-size:26px;line-height:1.45;margin:6px 0 14px;text-align:left}
+.opts{display:grid;gap:14px}
+.opt{min-height:90px;font-size:24px;line-height:1.3;text-align:left;padding:10px 18px;border:4px solid var(--ink);border-radius:20px;background:#fff;
+  box-shadow:0 5px 0 rgba(59,42,32,.25);display:flex;align-items:center;gap:12px}
+.opt:active:not(:disabled){transform:translateY(4px);box-shadow:0 1px 0 rgba(59,42,32,.25)}
+.opt .num{flex:none;width:44px;height:44px;border-radius:50%;border:3px solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:22px;background:#fff7d6}
+.opt.picked{background:#fff1b8}
+.ox{grid-template-columns:1fr 1fr}
+.ox .opt{min-height:160px;justify-content:center;font-size:90px}
+.order-tools{display:flex;gap:12px;margin-top:14px}
+.order-tools .btn{flex:1}
+.verdict-me{font-size:64px;margin:6px 0}
+.answer-line{font-size:22px;background:#fff7d6;border:3px solid var(--ink);border-radius:16px;padding:10px 14px;margin:10px 0;line-height:1.4}
+.cards{display:grid;gap:10px;margin-top:10px}
+.tcard{border:4px solid var(--ink);border-radius:20px;background:#fff;padding:8px 12px;min-height:90px;display:flex;align-items:center;gap:12px;text-align:left;
+  box-shadow:0 5px 0 rgba(59,42,32,.25);font-size:22px}
+.tcard img{width:72px;height:72px;border-radius:50%;flex:none}
+.tcard span{display:block}
+.tcard small{display:block;font-size:16px;opacity:.75;line-height:1.3}
+.captain-box{border:4px dashed var(--ink);border-radius:20px;padding:12px;margin-top:14px;background:#fffdf3}
+.modal{position:fixed;inset:0;background:rgba(59,42,32,.5);display:flex;align-items:center;justify-content:center;padding:14px;z-index:40}
+.modal .box{max-width:560px;width:100%;padding:20px;text-align:center;max-height:100%;overflow:auto}
+.modal h3{font-size:28px;margin:4px 0 12px}
+
+/* =================== 교사(TV) 화면 =================== */
+#host{position:fixed;inset:0;display:flex;flex-direction:column;padding:1.2vh 1.2vw;gap:1.2vh;font-size:min(1.05vw,1.9vh)}
+#host .btn{font-size:1.5em;min-height:3.4em;padding:0 1.1em;border-radius:.9em}
+.h-score{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:1.2em;padding:.5em 1.2em}
+.h-team{display:flex;align-items:center;gap:.8em}
+.h-team.jp{flex-direction:row-reverse;text-align:right}
+.h-team img{width:5.2em;height:5.2em;border-radius:50%}
+.h-team .nm{font-size:2em}
+.h-team .pts{font-size:5em;line-height:1}
+.h-team .cardsmini{display:flex;gap:.3em;margin-top:.2em}
+.h-team.jp .cardsmini{justify-content:flex-end}
+.h-team .cardsmini img{width:2.2em;height:2.2em}
+.h-team .cardsmini img.used{filter:grayscale(1) opacity(.3)}
+.h-team .cap{font-size:1.15em;opacity:.8}
+.h-mid{text-align:center}
+.h-mid .inn{font-size:2.4em}
+.h-mid .outs{display:flex;gap:.5em;justify-content:center;margin-top:.3em;font-size:1.4em;align-items:center}
+.h-mid .outs i{width:1.3em;height:1.3em;border-radius:50%;border:.2em solid var(--ink);background:#fff;display:inline-block}
+.h-mid .outs i.on{background:var(--bad)}
+.h-main{flex:1;min-height:0;display:grid;grid-template-columns:44% 1fr;gap:1.2vw}
+.field{position:relative;border-radius:1.4em;overflow:hidden;border:.25em solid var(--ink);box-shadow:0 .35em 0 rgba(59,42,32,.25);background:#66dd00;
+  container-type:size;display:flex;align-items:center;justify-content:center}
+.fimg{position:relative;width:min(100cqw,150cqh);aspect-ratio:3/2}
+.fimg>img.bg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.base-runner{position:absolute;width:13%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;border:.3em solid var(--ink);transition:left .6s,top .6s}
+.base-runner img{width:100%;height:100%;border-radius:50%;display:block}
+.field .msg{position:absolute;left:4%;right:4%;bottom:4%;text-align:center;font-size:1.6em;background:rgba(255,255,255,.92);border:.2em solid var(--ink);border-radius:1em;padding:.3em .6em}
+.stamp{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%) rotate(-8deg);font-size:6em;color:#fff;
+  -webkit-text-stroke:.12em var(--ink);paint-order:stroke fill;white-space:nowrap;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:translate(-50%,-50%) scale(.2) rotate(-8deg)}to{transform:translate(-50%,-50%) scale(1) rotate(-8deg)}}
+.panel{padding:1.2em 1.6em;display:flex;flex-direction:column;gap:.8em;min-height:0;overflow:hidden}
+.panel h2{font-size:2.4em;margin:0}
+.panel .qmeta{font-size:1.3em;opacity:.7}
+.panel .q{font-size:2.6em;line-height:1.35}
+.panel ul{margin:0;padding:0;list-style:none;display:grid;gap:.5em}
+.panel li{font-size:1.9em;border:.15em solid var(--ink);border-radius:.7em;padding:.25em .7em;background:#fffdf5}
+.panel li.right{background:#c9f5d7;border-color:#15803d}
+.panel .oxbig{display:flex;gap:1em;font-size:5em;justify-content:center}
+.panel .oxbig span{border:.06em solid var(--ink);border-radius:.3em;padding:0 .5em;background:#fffdf5}
+.panel .oxbig span.right{background:#c9f5d7}
+.prog{display:grid;grid-template-columns:auto 1fr auto;gap:.5em 1em;align-items:center;font-size:1.6em}
+.bar{height:1.2em;border:.15em solid var(--ink);border-radius:999px;background:#fff;overflow:hidden}
+.bar i{display:block;height:100%;transition:width .5s}
+.bar.cn i{background:var(--cn)} .bar.jp i{background:var(--jp)}
+.timer{font-size:3em;text-align:right}
+.h-ctrl{display:flex;gap:1em;align-items:center;flex-wrap:wrap}
+.h-ctrl .sp{flex:1}
+.h-ctrl .info{font-size:1.4em;opacity:.8}
+/* 로비 */
+.lobby{flex:1;min-height:0;display:grid;grid-template-columns:auto 1fr 1fr;gap:1.4vw}
+.lobby .join{padding:1.4em;text-align:center;display:flex;flex-direction:column;align-items:center;gap:.6em}
+.lobby .join h1{font-size:3.4em;margin:0}
+.lobby .qr{width:22em;height:22em;background:#fff;border-radius:1em;display:flex;align-items:center;justify-content:center}
+.lobby .qr svg{width:100%;height:100%}
+.lobby .codebig{font-size:5.2em;letter-spacing:.15em;line-height:1}
+.lobby .url{font-size:1.2em;opacity:.75;word-break:break-all;max-width:24em}
+.roster{padding:1.2em;display:flex;flex-direction:column;gap:.8em;min-height:0}
+.roster .head{display:flex;align-items:center;gap:.8em;font-size:2.4em}
+.roster .head img{width:2.4em;height:2.4em;border-radius:50%}
+.roster .chips{display:flex;flex-wrap:wrap;gap:.5em;align-content:flex-start;overflow:auto}
+.chip{font-family:inherit;font-size:1.6em;border:.15em solid var(--ink);border-radius:999px;padding:.15em .7em;background:#fff}
+.roster.cn .chip{background:var(--cn-soft)} .roster.jp .chip{background:var(--jp-soft)}
+.chip.off{opacity:.4}
+.hint{font-size:1.2em;opacity:.7}
+/* 끝 화면 */
+.final{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:1.4vw}
+.final .box{padding:1.4em 1.8em;overflow:auto}
+.final h2{font-size:2.6em;margin:0 0 .4em}
+.winner{font-size:4.4em;text-align:center;margin:.2em 0}
+.podium{display:grid;gap:.6em}
+.podium div{font-size:2.2em;border:.12em solid var(--ink);border-radius:.6em;padding:.2em .6em;background:#fffdf5;display:flex;justify-content:space-between}
+.missed li{font-size:1.6em;line-height:1.4;margin-bottom:.6em}
+.missed li b{font-weight:normal;color:#15803d}
+</style>
+</head>
+<body>
+
+<!-- ============ 학생 ============ -->
+<div id="student" class="hidden">
+  <div class="box s-top hidden" id="sTop">
+    <img id="sEmblem" alt="">
+    <div class="who" id="sWho"></div>
+    <div class="sc" id="sScore"></div>
+  </div>
+
+  <!-- 입장 -->
+  <div class="box s-screen" id="sJoin">
+    <h2>⚾ 역사 티볼 리그</h2>
+    <div id="sCodeWrap">
+      <p>방 번호 4자리</p>
+      <input class="code" id="sCode" inputmode="numeric" maxlength="4" autocomplete="off">
+    </div>
+    <p>내 학번 4자리 (예: 2211)</p>
+    <div class="idview" id="sIdView">____</div>
+    <div class="keypad" id="sKeypad"></div>
+    <div class="err" id="sErr"></div>
+    <button class="btn gold" id="sJoinBtn" style="width:100%;min-height:84px;font-size:30px">입장하기</button>
+  </div>
+
+  <!-- 기다리기 -->
+  <div class="box s-screen hidden" id="sWait">
+    <img class="big-emblem" id="sWaitEmblem" alt="">
+    <div class="team-name" id="sWaitTeam"></div>
+    <p id="sWaitText"></p>
+    <div class="captain-box hidden" id="sCapInfo"></div>
+  </div>
+
+  <!-- 문제 -->
+  <div class="box s-screen hidden" id="sQ" style="text-align:left">
+    <div class="timerbar"><i id="sTimer"></i></div>
+    <div class="qtext" id="sQText"></div>
+    <div class="opts" id="sOpts"></div>
+    <div class="order-tools hidden" id="sOrderTools">
+      <button class="btn" id="sOrderReset">↺ 다시</button>
+      <button class="btn gold" id="sOrderSend">제출</button>
+    </div>
+  </div>
+
+  <!-- 제출함 -->
+  <div class="box s-screen hidden" id="sSent">
+    <h2>제출 완료! 🙌</h2>
+    <p>다른 친구들을 기다려요</p>
+    <p id="sSentCount"></p>
+  </div>
+
+  <!-- 결과 -->
+  <div class="box s-screen hidden" id="sReveal">
+    <div class="verdict-me" id="sMine"></div>
+    <div class="answer-line" id="sAnswer"></div>
+    <h2 id="sTeamVerdict"></h2>
+    <div class="captain-box hidden" id="sCardBox">
+      <p style="margin-top:0">🧢 <b>내가 수비 주장!</b> 불평등 조약 카드를 쓸 수 있어요</p>
+      <div class="cards" id="sCards"></div>
+    </div>
+    <p id="sCardResult"></p>
+  </div>
+
+  <!-- 끝 -->
+  <div class="box s-screen hidden" id="sOver">
+    <h2>경기 끝!</h2>
+    <div class="team-name" id="sOverWin"></div>
+    <p id="sOverScore"></p>
+    <div class="answer-line" id="sOverMe"></div>
+  </div>
+</div>
+
+<!-- 카드 퀴즈 -->
+<div class="modal hidden" id="sCardModal">
+  <div class="box">
+    <img id="sCmImg" alt="" style="width:110px;height:110px;border-radius:50%">
+    <h3 id="sCmTitle"></h3>
+    <p style="font-size:20px;margin:0 0 12px">이 카드의 뜻을 맞혀야 쓸 수 있어요. 틀리면 카드가 사라져요!</p>
+    <div class="opts" id="sCmOpts"></div>
+    <button class="btn" id="sCmCancel" style="margin-top:14px;width:100%">그만두기</button>
+  </div>
+</div>
+
+<!-- ============ 교사(TV) ============ -->
+<div id="host" class="hidden">
+  <!-- 로비 -->
+  <div class="lobby" id="hLobby">
+    <div class="box join">
+      <h1>⚾ 역사 티볼 리그</h1>
+      <div class="qr" id="hQR"></div>
+      <div class="hint">카메라로 QR을 찍거나, 방 번호를 넣어요</div>
+      <div class="codebig" id="hCode">----</div>
+      <div class="url" id="hUrl"></div>
+    </div>
+    <div class="box roster cn"><div class="head"><img data-img="team_cn" alt=""><span>청팀 <span id="hCnCount">0</span>명</span></div>
+      <div class="hint">이름표를 누르면 다른 팀으로 옮겨요</div><div class="chips" id="hCnList"></div></div>
+    <div class="box roster jp"><div class="head"><img data-img="team_jp" alt=""><span>일본팀 <span id="hJpCount">0</span>명</span></div>
+      <div class="hint">이름표를 누르면 다른 팀으로 옮겨요</div><div class="chips" id="hJpList"></div></div>
+  </div>
+
+  <!-- 경기 -->
+  <div class="box h-score hidden" id="hScore">
+    <div class="h-team cn"><img data-img="team_cn" alt=""><div><div class="nm t-cn">청팀</div><div class="cap" id="hCapCn"></div><div class="cardsmini" id="hCardsCn"></div></div><div class="pts" id="hPtsCn">0</div></div>
+    <div class="h-mid"><div class="inn" id="hInn"></div><div class="outs" id="hOuts"></div></div>
+    <div class="h-team jp"><img data-img="team_jp" alt=""><div><div class="nm t-jp">일본팀</div><div class="cap" id="hCapJp"></div><div class="cardsmini" id="hCardsJp"></div></div><div class="pts" id="hPtsJp">0</div></div>
+  </div>
+  <div class="h-main hidden" id="hMain">
+    <div class="field"><div class="fimg" id="hField"><img class="bg" data-img="field" alt="티볼 운동장"></div></div>
+    <div class="box panel" id="hPanel"></div>
+  </div>
+
+  <!-- 끝 -->
+  <div class="final hidden" id="hFinal">
+    <div class="box"><h2>🏆 경기 결과</h2><div class="winner" id="hWinner"></div><div class="podium" id="hScoreLine"></div>
+      <h2 style="margin-top:.8em">🎖️ 정답왕 (학번)</h2><div class="podium" id="hTop"></div></div>
+    <div class="box"><h2>🤔 우리 반이 많이 틀린 문제</h2><ol class="missed" id="hMissed"></ol></div>
+  </div>
+
+  <div class="h-ctrl" id="hCtrl"></div>
+</div>
+
+<div class="mode-banner hidden" id="modeBanner">연습 모드: 이 컴퓨터의 탭끼리만 연결돼요 (Firebase 연결 전)</div>
+
+<script src="../vendor/firebase-bundle.js"></script>
+<script src="../vendor/qrcode.min.js"></script>
+<script src="config.js"></script>
+<script src="questions.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
