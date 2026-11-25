@@ -560,7 +560,9 @@ renderSound(); renderLadder(); renderTimeline(); holdTier=0; nextTier=pickTier()
 resize(); requestAnimationFrame(frame);
 
 // 시험용 손잡이(자동 점검에서만 씀)
-window.__game={drop:(x)=>{dropX=x;drop();},state:()=>({score,running,over,balls:Composite.allBodies(world).filter(b=>b.label==="ball").map(b=>b.tier)}),force:(t,x,y)=>makeBall(t,x,y)};
+window.__game={drop:(x)=>{dropX=x;drop();},state:()=>({score,running,over,maxTier,hold:holdTier,next:nextTier,canDrop,balls:Composite.allBodies(world).filter(b=>b.label==="ball").map(b=>b.tier)}),
+  bodies:()=>Composite.allBodies(world).filter(b=>b.label==="ball").map(b=>({t:b.tier,x:b.position.x,y:b.position.y,r:radius(b.tier)})),
+  W,H,LINE_Y,force:(t,x,y)=>makeBall(t,x,y)};
 </script>
 </body>
 </html>
