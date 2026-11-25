@@ -254,7 +254,7 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
 
   <!-- 문제 -->
   <div class="box s-screen hidden" id="sQ" style="text-align:left">
-    <div class="timerbar"><i id="sTimer"></i></div>
+    <div style="display:flex;align-items:center;gap:12px"><div class="timerbar" style="flex:1"><i id="sTimer"></i></div><b id="sTimeLeft" style="font-size:26px;font-weight:normal;min-width:84px;text-align:right"></b></div>
     <div class="qtext" id="sQText"></div>
     <div class="opts" id="sOpts"></div>
     <div class="order-tools hidden" id="sOrderTools">
@@ -2988,7 +2988,8 @@ window.QUESTIONS = [
    ============================================================ */
 const $ = s => document.querySelector(s);
 const IS_HOST = location.hash === "#host" || new URLSearchParams(location.search).has("host");
-const PITCH_MS = 20000;           // 문제 푸는 시간
+const LIMITS = [10, 15, 20, 30];   // 선생님이 고르는 문제 시간(초)
+const ORDER_BONUS = 5;            // 순서 문제는 5초 더
 const QS = window.QUESTIONS || [];
 const QBY = Object.fromEntries(QS.map(q => [q.id, q]));
 const IMG = n => (window.__IMG && window.__IMG[n]) || ("img/" + n + ".webp");
@@ -3162,7 +3163,7 @@ function normState(s) {
     cards: { cn: cards("cn"), jp: cards("jp") },
     cardPlay: s.cardPlay || null, pending: { cn: (s.pending || {}).cn || 0, jp: (s.pending || {}).jp || 0 },
     finalReq: !!s.finalReq, asked: Object.values(s.asked || {}), prev: s.prev || null,
-    msg: s.msg || "", final: s.final || null,
+    msg: s.msg || "", final: s.final || null, limit: LIMITS.includes(s.limit) ? s.limit : 15,
   };
 }
 const offenseOf = st => (st.half === 0 ? "cn" : "jp");
@@ -3259,7 +3260,7 @@ async function startPitch(practice) {
     const s = H.st, id = nextQuestionId(), now = H.db.now();
     const patch = {
       phase: "pitch", practice: !!practice, pitchNo: s.pitchNo + 1,
-      q: { id, startedAt: now, endsAt: now + PITCH_MS, seed: Math.floor(Math.random() * 1e9) },
+      q: { id, startedAt: now, endsAt: now + (s.limit + (QBY[id] && QBY[id].type === "order" ? ORDER_BONUS : 0)) * 1000, seed: Math.floor(Math.random() * 1e9) },
       result: null, cardPlay: null, msg: "",
       prev: { bases: s.bases.slice(), score: Object.assign({}, s.score), outs: s.outs },
       asked: s.asked.concat([id]),
@@ -3419,7 +3420,7 @@ function rulePages() {
      <li>팀은 <b>자동</b>으로 정해져요. 두 팀 인원이 맞게 나뉘어요.</li>
      <li>태블릿에 내 팀(🔥 ${T.cn.name} / 🌊 ${T.jp.name})이 보이면 준비 끝!</li></ol>`,
     `<h2>❓ 한 타석 = 문제 1개</h2>
-     <ul><li>선생님이 <b>⚾ 투구</b>를 누르면 모든 태블릿에 같은 문제가 떠요. <b>⏱ 20초!</b></li>
+     <ul><li>선생님이 <b>⚾ 투구</b>를 누르면 모든 태블릿에 같은 문제가 떠요. <b>⏱ ${H.st.limit}초!</b> (순서 문제는 ${H.st.limit + ORDER_BONUS}초)</li>
      <li>공격 팀만 푸는 게 아니에요. <b>수비 팀도 같은 문제</b>를 풀어요.</li>
      <li>보기 순서는 <b>사람마다 달라요</b>. 옆 친구가 누르는 자리를 따라 하면 틀려요!</li>
      <li>답은 <b>한 번만</b> 낼 수 있어요. 시간 안에 안 내면 틀린 것으로 쳐요.</li>
@@ -3449,7 +3450,8 @@ function rulePages() {
       <tr><td>🧪 테스트 모드</td><td>학생 6명이 자동으로 답하는 시험 창 (실제 수업 방과 무관)</td><td>시작 전</td></tr>
       <tr><td>연습 문제</td><td>점수에 들어가지 않는 문제 1개로 연습</td><td>시작 전</td></tr>
       <tr><td>⚾ 경기 시작</td><td>1회 초부터 시작 (두 팀 모두 1명 이상 있어야 켜져요)</td><td>시작 전</td></tr>
-      <tr><td>⏱ 바로 마감</td><td>20초가 지나기 전에 문제를 닫고 판정</td><td>문제 푸는 중</td></tr>
+      <tr><td>⏱ 문제 시간</td><td>누를 때마다 10초 → 15초 → 20초 → 30초 (순서 문제는 +5초)</td><td>투구 전</td></tr>
+      <tr><td>⏱ 바로 마감</td><td>시간이 끝나기 전에 문제를 닫고 판정</td><td>문제 푸는 중</td></tr>
       <tr><td>💡 해설</td><td>해설 창을 닫거나 다시 열어요</td><td>판정 뒤</td></tr>
       <tr><td>다음 투구 ▶</td><td>다음 문제 (아웃 3개면 '공수 교대 ▶'로 바뀌어요)</td><td>판정 뒤</td></tr>
       <tr><td>⚾ 투구</td><td>공수 교대 뒤 첫 문제를 내요</td><td>공수 교대 뒤</td></tr>
@@ -3530,12 +3532,14 @@ function renderCtrl() {
   if (s.phase === "lobby") {
     c.append(mk("div", "info", `접속 ${n}명 · 방 ${H.code}`), mk("div", "sp"));
     c.append(ctrlButton("📖 게임 방법", "", () => openRules(0)));
+    c.append(timeButton());
     if (!IN_FRAME) c.append(ctrlButton("🧪 테스트 모드", "", () => window.open(location.pathname + "?test", "_blank")));
     c.append(ctrlButton("연습 문제", "", () => startPitch(true), n === 0),
       ctrlButton("⚾ 경기 시작", "gold", () => startPitch(false), present("cn").length === 0 || present("jp").length === 0));
   } else if (s.phase === "ready") {
     c.append(mk("div", "info", s.finalReq ? "🏁 마지막 회 진행 중" : `접속 ${n}명`), mk("div", "sp"),
       ctrlButton("📖 게임 방법", "", () => openRules(3)),
+      timeButton(),
       ctrlButton("👥 학생 관리", "", toggleRoster),
       ctrlButton(s.finalReq ? "🏁 마지막 회 취소" : "🏁 마지막 회", "", () => putState({ finalReq: !s.finalReq })),
       ctrlButton("⚾ 투구", "gold", () => startPitch(false)));
@@ -3559,6 +3563,10 @@ function renderCtrl() {
   if (s.phase !== "lobby" && s.phase !== "over") {
     c.append(ctrlButton("경기 끝", "", () => { if (confirm("지금 경기를 끝내고 결과를 볼까요?")) finishGame(); }));
   }
+}
+function timeButton() {
+  const s = H.st;
+  return ctrlButton(`⏱ 문제 시간 ${s.limit}초`, "", () => putState({ limit: LIMITS[(LIMITS.indexOf(s.limit) + 1) % LIMITS.length] }));
 }
 let rosterOpen = false;
 function toggleRoster() { rosterOpen = !rosterOpen; renderHost(); }
@@ -3855,7 +3863,8 @@ function tickStudent() {
   if (S.bot) botTick();
   if (s.phase === "pitch" && s.q) {
     const left = Math.max(0, s.q.endsAt - (S.db ? S.db.now() : Date.now()));
-    $("#sTimer").style.width = (left / PITCH_MS * 100) + "%";
+    $("#sTimer").style.width = (left / Math.max(1, s.q.endsAt - s.q.startedAt) * 100) + "%";
+    $("#sTimeLeft").textContent = "⏱ " + Math.ceil(left / 1000) + "초";
   }
 }
 function renderReveal() {
@@ -3930,7 +3939,7 @@ function renderExplainStudent() {
 function openStudentRules() {
   const b = $("#sRulesBody"); b.textContent = "";
   const ul = mk("ul");
-  ["선생님이 ⚾ 투구를 누르면 문제가 떠요. 20초 안에 답해요. 답은 한 번만!",
+  [`선생님이 ⚾ 투구를 누르면 문제가 떠요. ${S.st.limit}초 안에 답해요(순서 문제는 ${S.st.limit + ORDER_BONUS}초). 답은 한 번만!`,
    "두 팀이 같은 문제를 동시에 풀어요. 보기 순서는 사람마다 달라요.",
    "공격 팀 정답률이 50% 이상이고 수비 팀보다 높으면 안타! 높을수록 2루타·3루타·홈런(95% 이상).",
    "아니면 아웃. 아웃 3개면 공수 교대. 주자가 홈에 들어오면 1점.",
