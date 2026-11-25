@@ -44,7 +44,7 @@
    - 조정할 수 있는 값(index.html 위쪽): `DIAM`(공 지름), `SPAWN`(처음 떨어지는 단계 비율), `POINTS`, `FINAL_BONUS`, 넘침 판정 2.5초
 2. 티볼 리그: 학생과 교사 화면, Firebase 연결(`tball/` 폴더로 따로). 문제는 `docs/question-bank.md`를 쓰고 **보기 순서는 매번 섞는다**(정답이 ①번에 쏠려 있음).
 3. 선생님용 **Firebase 설정 안내서**(프로젝트 만들기, 익명 로그인 켜기, DB 보안 규칙, 설정값 붙여 넣기)
-4. Netlify Drop으로 배포하고 QR 만들기(머지 링크와 티볼 링크를 따로)
+4. Netlify Drop으로 배포하고 QR 만들기(머지 링크와 티볼 링크를 따로). **선생님이 직접 Drop으로 올린다**(Claude가 Netlify에 올리려면 HTMLzip 환경에 토큰과 접속 허용을 저장해야 해서 하지 않기로 함). 머지는 `python3 tools/build_single.py`로 만든 `dist/qing-merge.html`을 `index.html`로 이름을 바꿔 폴더에 넣어 올린다.
 5. 학교 와이파이에서 실제 기기로 시험하기(25~32명 동시 접속)
 
 ## 주의할 점
