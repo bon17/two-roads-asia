@@ -48,6 +48,13 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
 .keypad button{min-height:90px;font-size:38px;border:4px solid var(--ink);border-radius:20px;background:#fff;box-shadow:0 5px 0 rgba(59,42,32,.25)}
 .keypad button:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(59,42,32,.25)}
 .err{color:#d62828;font-size:19px;min-height:26px}
+.steps{display:flex;justify-content:center;gap:10px;font-size:20px;margin:4px 0 6px;opacity:.9}
+.steps span{padding:4px 12px;border-radius:999px}
+.steps span.on{background:var(--gold);border:3px solid var(--ink)}
+.steps span.done{opacity:.5}
+.ask{font-size:26px!important;margin:10px 0 0!important}
+.roomchip{display:inline-block;font-size:20px;background:#e8f7ee;border:3px solid var(--ink);border-radius:999px;padding:4px 14px;margin-top:4px}
+.linkbtn{font-family:inherit;background:none;border:none;font-size:20px;text-decoration:underline;margin-top:14px;min-height:48px;opacity:.8}
 .timerbar{height:16px;border:3px solid var(--ink);border-radius:999px;overflow:hidden;background:#fff}
 .timerbar i{display:block;height:100%;background:var(--gold);transition:width .25s linear}
 .qtext{font-size:26px;line-height:1.45;margin:6px 0 14px;text-align:left}
@@ -122,6 +129,7 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
 .h-ctrl{display:flex;gap:1em;align-items:center;flex-wrap:wrap}
 .h-ctrl .sp{flex:1}
 .h-ctrl .info{font-size:1.4em;opacity:.8}
+.modepill{font-size:1.1em;background:#fff7d6;border:.15em solid var(--ink);border-radius:999px;padding:.2em .8em;white-space:nowrap}
 /* 로비 */
 .lobby{flex:1;min-height:0;display:grid;grid-template-columns:auto 1fr 1fr;gap:1.4vw}
 .lobby .join{padding:1.4em;text-align:center;display:flex;flex-direction:column;align-items:center;gap:.6em}
@@ -138,6 +146,20 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
 .roster.cn .chip{background:var(--cn-soft)} .roster.jp .chip{background:var(--jp-soft)}
 .chip.off{opacity:.4}
 .hint{font-size:1.2em;opacity:.7}
+/* 테스트 모드 창 */
+#test{position:fixed;inset:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,34%);gap:10px;padding:10px}
+#tHost{width:100%;height:100%;border:4px solid var(--ink);border-radius:16px;background:#fff}
+.tside{display:flex;flex-direction:column;gap:10px;min-height:0}
+.tinfo{padding:10px 14px}
+.tinfo h2{margin:0 0 4px;font-size:24px}
+.tinfo p{margin:4px 0;font-size:15px;line-height:1.4}
+.tswitch{display:flex;gap:8px;align-items:center;font-size:16px;margin:8px 0;cursor:pointer}
+.tswitch input{width:24px;height:24px}
+.tinfo .btn{min-height:44px;font-size:18px;padding:0 14px}
+.tgrid{flex:1;min-height:0;display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start;justify-content:center}
+.tphone{position:relative;overflow:hidden;border:3px solid var(--ink);border-radius:14px;background:#fff}
+.tphone iframe{width:390px;height:844px;border:0;transform-origin:0 0;position:absolute;left:0;top:0}
+.tlabel{position:absolute;right:4px;bottom:4px;background:var(--ink);color:#fff;font-size:12px;border-radius:999px;padding:1px 8px}
 /* 끝 화면 */
 .final{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:1.4vw}
 .final .box{padding:1.4em 1.8em;overflow:auto}
@@ -159,18 +181,17 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
     <div class="sc" id="sScore"></div>
   </div>
 
-  <!-- 입장 -->
+  <!-- 입장: ① 방 번호 → ② 학번 (한 화면에 칸 하나만) -->
   <div class="box s-screen" id="sJoin">
     <h2>⚾ 역사 티볼 리그</h2>
-    <div id="sCodeWrap">
-      <p>방 번호 4자리</p>
-      <input class="code" id="sCode" inputmode="numeric" maxlength="4" autocomplete="off">
-    </div>
-    <p>내 학번 4자리 (예: 2211)</p>
-    <div class="idview" id="sIdView">____</div>
+    <div class="steps" id="sSteps"><span id="sStep1">① 방 번호</span><span>›</span><span id="sStep2">② 내 학번</span></div>
+    <div class="roomchip hidden" id="sRoomChip"></div>
+    <p class="ask" id="sAsk"></p>
+    <div class="idview" id="sView">____</div>
     <div class="keypad" id="sKeypad"></div>
     <div class="err" id="sErr"></div>
-    <button class="btn gold" id="sJoinBtn" style="width:100%;min-height:84px;font-size:30px">입장하기</button>
+    <button class="btn gold" id="sNext" style="width:100%;min-height:84px;font-size:30px"></button>
+    <button class="linkbtn hidden" id="sBack">← 방 번호 다시 넣기</button>
   </div>
 
   <!-- 기다리기 -->
@@ -242,17 +263,17 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
       <div class="codebig" id="hCode">----</div>
       <div class="url" id="hUrl"></div>
     </div>
-    <div class="box roster cn"><div class="head"><img data-img="team_cn" alt=""><span>청팀 <span id="hCnCount">0</span>명</span></div>
+    <div class="box roster cn"><div class="head"><img data-img="team_cn" alt=""><span><span data-team="cn"></span> <span id="hCnCount">0</span>명</span></div>
       <div class="hint">이름표를 누르면 다른 팀으로 옮겨요</div><div class="chips" id="hCnList"></div></div>
-    <div class="box roster jp"><div class="head"><img data-img="team_jp" alt=""><span>일본팀 <span id="hJpCount">0</span>명</span></div>
+    <div class="box roster jp"><div class="head"><img data-img="team_jp" alt=""><span><span data-team="jp"></span> <span id="hJpCount">0</span>명</span></div>
       <div class="hint">이름표를 누르면 다른 팀으로 옮겨요</div><div class="chips" id="hJpList"></div></div>
   </div>
 
   <!-- 경기 -->
   <div class="box h-score hidden" id="hScore">
-    <div class="h-team cn"><img data-img="team_cn" alt=""><div><div class="nm t-cn">청팀</div><div class="cap" id="hCapCn"></div><div class="cardsmini" id="hCardsCn"></div></div><div class="pts" id="hPtsCn">0</div></div>
+    <div class="h-team cn"><img data-img="team_cn" alt=""><div><div class="nm t-cn" data-team="cn"></div><div class="cap" id="hCapCn"></div><div class="cardsmini" id="hCardsCn"></div></div><div class="pts" id="hPtsCn">0</div></div>
     <div class="h-mid"><div class="inn" id="hInn"></div><div class="outs" id="hOuts"></div></div>
-    <div class="h-team jp"><img data-img="team_jp" alt=""><div><div class="nm t-jp">일본팀</div><div class="cap" id="hCapJp"></div><div class="cardsmini" id="hCardsJp"></div></div><div class="pts" id="hPtsJp">0</div></div>
+    <div class="h-team jp"><img data-img="team_jp" alt=""><div><div class="nm t-jp" data-team="jp"></div><div class="cap" id="hCapJp"></div><div class="cardsmini" id="hCardsJp"></div></div><div class="pts" id="hPtsJp">0</div></div>
   </div>
   <div class="h-main hidden" id="hMain">
     <div class="field"><div class="fimg" id="hField"><img class="bg" data-img="field" alt="티볼 운동장"></div></div>
@@ -267,6 +288,21 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
   </div>
 
   <div class="h-ctrl" id="hCtrl"></div>
+</div>
+
+<!-- ============ 테스트 모드 창 ============ -->
+<div id="test" class="hidden">
+  <iframe id="tHost" title="교사 TV 화면"></iframe>
+  <div class="tside">
+    <div class="box tinfo">
+      <h2>🧪 테스트 모드</h2>
+      <p>왼쪽은 <b>교사 TV 화면</b>, 오른쪽은 <b>학생 6명</b>이에요. 이 창은 Firebase에 연결하지 않고 이 컴퓨터 안에서만 움직여서 실제 수업 방에는 영향이 없어요.</p>
+      <p>학생 화면을 직접 눌러 볼 수도 있어요.</p>
+      <label class="tswitch"><input type="checkbox" id="tBot" checked> 🤖 학생들이 자동으로 답하기 (수비 주장이 되면 조약 카드도 써요)</label>
+      <button class="btn" id="tReset">↺ 처음부터 다시</button>
+    </div>
+    <div class="tgrid" id="tStudents"></div>
+  </div>
 </div>
 
 <div class="mode-banner hidden" id="modeBanner">연습 모드: 이 컴퓨터의 탭끼리만 연결돼요 (Firebase 연결 전)</div>

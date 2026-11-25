@@ -10,10 +10,13 @@ const QS = window.QUESTIONS || [];
 const QBY = Object.fromEntries(QS.map(q => [q.id, q]));
 const IMG = n => (window.__IMG && window.__IMG[n]) || ("img/" + n + ".webp");
 document.querySelectorAll("[data-img]").forEach(e => { e.src = IMG(e.dataset.img); });
+const IS_TEST = new URLSearchParams(location.search).has("test");
+const IN_FRAME = window.top !== window;
 
 const TEAM = {
-  cn: { name: "청팀", cls: "cn", img: "team_cn" },
-  jp: { name: "일본팀", cls: "jp", img: "team_jp" },
+  // 내부 키(cn=빨강, jp=파랑)는 저장 데이터용이라 그대로 두고, 화면 이름만 바꾼다.
+  cn: { name: "불꽃팀", short: "불꽃", cls: "cn", img: "team_cn" },
+  jp: { name: "파도팀", short: "파도", cls: "jp", img: "team_jp" },
 };
 const other = t => (t === "cn" ? "jp" : "cn");
 const VERDICT = {
@@ -44,9 +47,11 @@ function rng(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79
 function shuffled(arr, seed) { const r = rng(seed), a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 function mk(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 function show(id, on) { const e = typeof id === "string" ? $(id) : id; if (e) e.classList.toggle("hidden", !on); }
+// 연습/테스트 모드와 실제 수업(Firebase)의 저장 공간을 나눈다(실제 방 번호를 덮어쓰지 않게).
+const NS = () => (new URLSearchParams(location.search).has("local") || !window.FIREBASE_CONFIG) ? "tball-local:" : "tball:";
 const store = {
-  get(k, d) { try { const v = localStorage.getItem("tball:" + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
-  set(k, v) { try { localStorage.setItem("tball:" + k, JSON.stringify(v)); } catch (e) { } },
+  get(k, d) { try { const v = localStorage.getItem(NS() + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(NS() + k, JSON.stringify(v)); } catch (e) { } },
 };
 function correctText(q) {
   if (q.type === "mc") return q.options[q.answer];
@@ -156,7 +161,7 @@ async function connect() {
     await withTimeout(db.get("rooms/0000/meta"), 12000, "timeout: 데이터베이스 응답 없음");  // 연결과 규칙을 함께 확인
     return db;
   }
-  show("#modeBanner", true);
+  if (!IS_HOST) show("#modeBanner", true);   // 교사 화면은 아래 조작 줄에 따로 표시
   return LocalDB();
 }
 
@@ -437,10 +442,12 @@ function ctrlButton(text, cls, fn, disabled) {
 }
 function renderCtrl() {
   const s = H.st, c = $("#hCtrl"); c.textContent = "";
+  if (H.db && H.db.mode === "local") c.append(mk("div", "modepill", "연습 모드"));
   const n = present("cn").length + present("jp").length;
   if (s.phase === "lobby") {
-    c.append(mk("div", "info", `접속 ${n}명 · 방 ${H.code}`), mk("div", "sp"),
-      ctrlButton("연습 문제", "", () => startPitch(true), n === 0),
+    c.append(mk("div", "info", `접속 ${n}명 · 방 ${H.code}`), mk("div", "sp"));
+    if (!IN_FRAME) c.append(ctrlButton("🧪 테스트 모드", "", () => window.open(location.pathname + "?test", "_blank")));
+    c.append(ctrlButton("연습 문제", "", () => startPitch(true), n === 0),
       ctrlButton("⚾ 경기 시작", "gold", () => startPitch(false), present("cn").length === 0 || present("jp").length === 0));
   } else if (s.phase === "ready") {
     c.append(mk("div", "info", s.finalReq ? "🏁 마지막 회 진행 중" : `접속 ${n}명`), mk("div", "sp"),
@@ -583,40 +590,74 @@ const S = { db: null, code: "", id: "", st: normState(null), me: null, myAns: nu
 function studentMain() {
   show("#student", true);
   const qs = new URLSearchParams(location.search);
-  const room = qs.get("room") || store.get("room", "");
-  $("#sCode").value = /^\d{4}$/.test(room) ? room : "";
-  if (qs.get("room")) show("#sCodeWrap", false);
+  const urlRoom = qs.get("room") || "";
+  S.fromQR = /^\d{4}$/.test(urlRoom);
+  S.roomIn = S.fromQR ? urlRoom : "";
   // 학번은 같은 방에 다시 들어올 때만 미리 채운다(기기를 돌려 쓰는 경우 대비)
-  S.id = (store.get("room", "") === $("#sCode").value && $("#sCode").value) ? store.get("sid", "") : "";
-  renderIdView();
+  S.id = S.fromQR && store.get("room", "") === urlRoom ? store.get("sid", "") : "";
+  S.step = S.fromQR ? "id" : "room";
   const kp = $("#sKeypad");
   ["1", "2", "3", "4", "5", "6", "7", "8", "9", "←", "0", "✓"].forEach(k => {
     const b = mk("button", "", k);
-    b.onclick = () => {
-      if (k === "←") S.id = S.id.slice(0, -1);
-      else if (k === "✓") return join();
-      else if (S.id.length < 4) S.id += k;
-      renderIdView();
-    };
+    b.setAttribute("aria-label", k === "←" ? "지우기" : k === "✓" ? "다음" : k);
+    b.onclick = () => keyIn(k);
     kp.append(b);
   });
-  $("#sJoinBtn").onclick = join;
+  // 컴퓨터 자판으로도 입력
+  window.addEventListener("keydown", e => {
+    if (!$("#sJoin") || $("#sJoin").classList.contains("hidden")) return;
+    if (/^\d$/.test(e.key)) keyIn(e.key); else if (e.key === "Backspace") keyIn("←"); else if (e.key === "Enter") keyIn("✓");
+  });
+  $("#sNext").onclick = () => keyIn("✓");
+  $("#sBack").onclick = () => { S.step = "room"; S.fromQR = false; $("#sErr").textContent = ""; renderJoinStep(); };
   $("#sOrderReset").onclick = () => { S.orderPick = []; renderQuestion(); };
   $("#sOrderSend").onclick = sendOrder;
   $("#sCmCancel").onclick = () => show("#sCardModal", false);
+  renderJoinStep();
+  // 테스트 모드: 학번을 받아 바로 입장
+  const auto = qs.get("autoid");
+  if (FORCE_LOCAL && S.fromQR && /^\d{4}$/.test(auto || "")) { S.id = auto; join(); }
 }
-function renderIdView() { $("#sIdView").textContent = (S.id + "____").slice(0, 4); }
-async function join() {
-  const code = $("#sCode").value.trim(), id = S.id;
-  const err = $("#sErr"); err.textContent = "";
-  if (!/^\d{4}$/.test(code)) { err.textContent = "방 번호 4자리를 넣어 주세요"; return; }
-  if (!/^\d{4}$/.test(id)) { err.textContent = "학번 4자리를 넣어 주세요 (예: 2211)"; return; }
-  $("#sJoinBtn").disabled = true;
+function keyIn(k) {
+  if (S.busyJoin) return;
+  const f = S.step === "room" ? "roomIn" : "id";
+  if (k === "←") S[f] = S[f].slice(0, -1);
+  else if (k === "✓") return S.step === "room" ? checkRoom() : join();
+  else if (S[f].length < 4) S[f] += k;
+  $("#sErr").textContent = "";
+  renderJoinStep();
+}
+function renderJoinStep() {
+  const room = S.step === "room";
+  $("#sStep1").className = room ? "on" : "done";
+  $("#sStep2").className = room ? "" : "on";
+  $("#sAsk").textContent = room ? "선생님 TV에 나온 방 번호 4자리를 눌러요" : "내 학번 4자리를 눌러요 (예: 2211)";
+  $("#sView").textContent = ((room ? S.roomIn : S.id) + "____").slice(0, 4);
+  $("#sNext").textContent = room ? "다음 ›" : "입장하기";
+  show("#sRoomChip", !room); $("#sRoomChip").textContent = "✅ 방 " + S.roomIn;
+  show("#sBack", !room);
+}
+async function openRoom(code) {
+  S.db = S.db || await connect();
+  return await S.db.get(`rooms/${code}/meta`);
+}
+async function checkRoom() {
+  const err = $("#sErr");
+  if (!/^\d{4}$/.test(S.roomIn)) { err.textContent = "방 번호 4자리를 모두 눌러 주세요"; return; }
+  S.busyJoin = true; $("#sNext").disabled = true;
   try {
-    S.db = S.db || await connect();
-    const meta = await S.db.get(`rooms/${code}/meta`);
-    if (!meta) { err.textContent = "그런 방이 없어요. 방 번호를 확인해 주세요"; return; }
-    S.code = code; S.id = id; store.set("room", code); store.set("sid", id);
+    if (!(await openRoom(S.roomIn))) { err.textContent = "그런 방이 없어요. 선생님 TV의 번호를 다시 확인해요"; return; }
+    S.step = "id"; S.id = store.get("room", "") === S.roomIn ? store.get("sid", "") : ""; renderJoinStep();
+  } catch (e) { S.db = null; err.textContent = "연결에 실패했어요. 다시 눌러 주세요. (" + explain(e) + ")"; }
+  finally { S.busyJoin = false; $("#sNext").disabled = false; }
+}
+async function join() {
+  const code = S.roomIn, id = S.id, err = $("#sErr");
+  if (!/^\d{4}$/.test(id)) { err.textContent = "학번 4자리를 모두 눌러 주세요 (예: 2211)"; return; }
+  S.busyJoin = true; $("#sNext").disabled = true;
+  try {
+    if (!(await openRoom(code))) { err.textContent = "그런 방이 없어요. 방 번호를 다시 넣어 주세요"; S.step = "room"; renderJoinStep(); return; }
+    S.code = code; store.set("room", code); store.set("sid", id);
     await S.db.update(`rooms/${code}/players/${id}`, { online: true, joinedAt: S.db.now() });
     S.db.presence(`rooms/${code}/players/${id}/online`);
     show("#sJoin", false); show("#sTop", true);
@@ -626,7 +667,7 @@ async function join() {
   } catch (e) {
     S.db = null;
     err.textContent = "연결에 실패했어요. 다시 눌러 주세요. (" + explain(e) + ")";
-  } finally { $("#sJoinBtn").disabled = false; }
+  } finally { S.busyJoin = false; $("#sNext").disabled = false; }
 }
 const SR = p => `rooms/${S.code}/${p}`;
 function watchMyAnswer() {
@@ -645,7 +686,7 @@ function renderStudent() {
   // 위쪽 띠
   if (t) { $("#sEmblem").src = IMG(TEAM[t].img); $("#sWho").textContent = `${S.id} · ${TEAM[t].name}`; $("#sWho").className = "who t-" + t; }
   else { $("#sEmblem").src = IMG("ball"); $("#sWho").textContent = `${S.id} · 팀 배정 중…`; }
-  $("#sScore").textContent = s.started ? `청 ${s.score.cn} : ${s.score.jp} 일\n${s.inning}회 ${s.half ? "말" : "초"} · ${s.outs}아웃` : "";
+  $("#sScore").textContent = s.started ? `${TEAM.cn.short} ${s.score.cn} : ${s.score.jp} ${TEAM.jp.short}\n${s.inning}회 ${s.half ? "말" : "초"} · ${s.outs}아웃` : "";
   $("#sScore").style.whiteSpace = "pre-line";
   if (!t || s.phase === "lobby" || s.phase === "ready") {
     screens("#sWait");
@@ -719,6 +760,7 @@ async function submit(correct) {
 }
 function tickStudent() {
   const s = S.st;
+  if (S.bot) botTick();
   if (s.phase === "pitch" && s.q) {
     const left = Math.max(0, s.q.endsAt - (S.db ? S.db.now() : Date.now()));
     $("#sTimer").style.width = (left / PITCH_MS * 100) + "%";
@@ -772,13 +814,73 @@ function renderOver() {
   const s = S.st, f = s.final || {}, t = myTeam();
   $("#sOverWin").textContent = f.winner === "draw" ? "🤝 무승부!" : f.winner ? `${f.winner === t ? "🎉 우리 팀" : "😮 " + TEAM[f.winner].name} 승리!` : "";
   $("#sOverWin").className = "team-name" + (f.winner && f.winner !== "draw" ? " t-" + f.winner : "");
-  $("#sOverScore").textContent = `청팀 ${s.score.cn} : ${s.score.jp} 일본팀`;
+  $("#sOverScore").textContent = `${TEAM.cn.name} ${s.score.cn} : ${s.score.jp} ${TEAM.jp.name}`;
   const rank = (f.top || []).findIndex(p => p.id === S.id);
   $("#sOverMe").textContent = rank >= 0 ? `${["🥇", "🥈", "🥉"][rank]} 정답왕 ${rank + 1}등! (${f.top[rank].ok}/${f.top[rank].n})` : "수고했어요! 오늘 배운 내용, 다시 한 번 떠올려 봐요.";
 }
 
+/* ---------- 테스트용 자동 학생(봇) ---------- */
+function botTick() {
+  const s = S.st;
+  if (S.botSkill == null) S.botSkill = .55 + Math.random() * .35;
+  if (s.phase === "pitch" && s.q && !S.myAns && S.botPitch !== s.pitchNo) {
+    S.botPitch = s.pitchNo; const pn = s.pitchNo;
+    setTimeout(() => { if (S.bot && S.st.phase === "pitch" && S.st.pitchNo === pn && !S.myAns) submit(Math.random() < S.botSkill); }, 1500 + Math.random() * 5500);
+  }
+  if (s.phase === "reveal" && S.botCard !== s.pitchNo) {
+    S.botCard = s.pitchNo;
+    const t = myTeam();
+    if (t && s.captain[t] === S.id && !s.cardPlay && Math.random() < .6) {
+      const ok = CARD_KEYS.filter(k => cardAllowed(s, t, k));
+      if (ok.length) {
+        const k = ok[Math.floor(Math.random() * ok.length)], pn = s.pitchNo;
+        setTimeout(() => { if (S.bot && S.st.pitchNo === pn && !S.st.cardPlay) S.db.set(SR("cardReq"), { team: t, card: k, by: S.id, ok: Math.random() < .75, pitchNo: pn }); }, 1800);
+      }
+    }
+  }
+}
+
+/* ============================================================
+   테스트 모드 창: 왼쪽 TV 화면 + 오른쪽 학생 6명 (Firebase와 무관, 이 컴퓨터 안에서만)
+   ============================================================ */
+function testMain() {
+  show("#test", true);
+  const base = location.pathname;
+  const host = $("#tHost"); host.src = base + "?local#host";
+  const ids = ["9901", "9902", "9903", "9904", "9905", "9906"];
+  const frames = [];
+  const fit = () => {
+    const g = $("#tStudents"), r = g.getBoundingClientRect();
+    const cw = (r.width - 2 * 10) / 3, ch = (r.height - 10) / 2, sc = Math.min(cw / 390, ch / 844);
+    frames.forEach(f => { f.wrap.style.width = 390 * sc + "px"; f.wrap.style.height = 844 * sc + "px"; f.el.style.transform = `scale(${sc})`; });
+  };
+  const setBot = () => frames.forEach(f => { try { f.el.contentWindow.__tb.S.bot = $("#tBot").checked; } catch (e) { } });
+  const wait = setInterval(() => {
+    let code = "";
+    try { const h = host.contentWindow.__tb && host.contentWindow.__tb.H; code = h && h.code; } catch (e) { }
+    if (!/^\d{4}$/.test(code || "")) return;
+    clearInterval(wait);
+    ids.forEach(id => {
+      const wrap = mk("div", "tphone"), el = mk("iframe");
+      el.src = base + "?local&room=" + code + "&autoid=" + id; el.title = "학생 " + id;
+      el.addEventListener("load", () => setTimeout(setBot, 300));
+      wrap.append(el, mk("div", "tlabel", "학생 " + id)); $("#tStudents").append(wrap); frames.push({ wrap, el });
+    });
+    fit();
+  }, 300);
+  new ResizeObserver(fit).observe($("#tStudents"));
+  $("#tBot").onchange = setBot;
+  setInterval(setBot, 2000);
+  $("#tReset").onclick = () => {
+    if (!confirm("테스트 기록을 모두 지우고 처음부터 할까요? (실제 수업 방에는 영향이 없어요)")) return;
+    try { Object.keys(localStorage).filter(k => k.startsWith("tbdb:") || k.startsWith("tball-local:")).forEach(k => localStorage.removeItem(k)); } catch (e) { }
+    location.reload();
+  };
+}
+
 /* ---------- 시작 ---------- */
-if (IS_HOST) hostMain(); else studentMain();
+document.querySelectorAll("[data-team]").forEach(e => { e.textContent = TEAM[e.dataset.team].name; });
+if (IS_TEST) testMain(); else if (IS_HOST) hostMain(); else studentMain();
 window.addEventListener("hashchange", () => location.reload());
 // 자동 점검에서만 쓰는 손잡이
 window.__tb = { H, S, judge, advance, normState };
