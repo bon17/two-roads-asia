@@ -7,7 +7,8 @@ window.QUESTIONS = [
 "q": "18세기 중엽 이후 청은 광저우 한 곳에서, 공행을 통해서만 서양과 무역했다.",
 "answer": "O",
 "note": "",
-"extra": false
+"extra": false,
+"explain": "18세기 중엽 이후 청은 광저우 한 곳에서, 정부가 허가한 상인 조합인 공행을 통해서만 서양과 무역했어요."
 },
 {
 "id": 2,
@@ -22,7 +23,8 @@ window.QUESTIONS = [
 ],
 "answer": 1,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "영국은 청의 차·비단·도자기를 사고 값을 은으로 냈어요. 청에 팔 물건이 없어서 영국은 무역 적자가 났어요."
 },
 {
 "id": 3,
@@ -37,7 +39,8 @@ window.QUESTIONS = [
 ],
 "answer": 2,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "삼각 무역: 영국은 인도에 면직물을 팔고, 인도는 청에 아편을 몰래 팔았어요."
 },
 {
 "id": 4,
@@ -52,7 +55,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "아편 밀수로 중독자가 늘고 청의 은이 영국 쪽으로 빠져나갔어요. 초기 무역과 은이 흐르는 방향이 반대가 됐지요."
 },
 {
 "id": 5,
@@ -67,7 +71,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "청은 임칙서를 보내 아편을 단속했고, 영국은 이를 구실로 군함을 보내 제1차 아편 전쟁(1840)을 일으켰어요."
 },
 {
 "id": 6,
@@ -82,7 +87,8 @@ window.QUESTIONS = [
 ],
 "answer": 3,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "난징 조약(1842)은 항구 5개 개항, 공행 폐지, 홍콩 할양이에요. 외국 공사의 베이징 주재는 톈진·베이징 조약 때예요."
 },
 {
 "id": 7,
@@ -97,7 +103,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "한쪽 나라에만 불리한 조약이 불평등 조약이에요. 난징 조약과 미일 수호 통상 조약이 대표적이에요."
 },
 {
 "id": 8,
@@ -112,7 +119,8 @@ window.QUESTIONS = [
 ],
 "answer": 1,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "제2차 아편 전쟁(1856)은 영국과 프랑스가 함께 일으켰어요. 프랑스는 자기 나라 선교사가 처형당한 일을 구실로 삼았어요."
 },
 {
 "id": 9,
@@ -127,7 +135,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "청 관리가 영국 배(애로호)의 선원을 잡고 영국 국기를 내린 애로호 사건을 영국이 전쟁의 구실로 삼았어요."
 },
 {
 "id": 10,
@@ -136,7 +145,8 @@ window.QUESTIONS = [
 "q": "톈진 조약·베이징 조약으로 청은 크리스트교 포교를 허용했다.",
 "answer": "O",
 "note": "",
-"extra": false
+"extra": false,
+"explain": "톈진·베이징 조약으로 청은 항구 10개를 더 열고, 외국 공사의 베이징 주재와 크리스트교 포교를 허용했어요."
 },
 {
 "id": 11,
@@ -145,7 +155,8 @@ window.QUESTIONS = [
 "q": "홍콩은 난징 조약으로 프랑스에 넘어갔다.",
 "answer": "X",
 "note": "영국",
-"extra": false
+"extra": false,
+"explain": "홍콩은 난징 조약으로 영국에 넘어갔고, 1997년에야 중국에 돌아갔어요."
 },
 {
 "id": 12,
@@ -159,7 +170,8 @@ window.QUESTIONS = [
 "난징 조약"
 ],
 "note": "초기 무역 → 삼각 무역 → 제1차 아편 전쟁 → 난징 조약",
-"extra": false
+"extra": false,
+"explain": "초기 무역(18세기) → 삼각 무역(19세기) → 제1차 아편 전쟁(1840) → 난징 조약(1842) 순서예요."
 },
 {
 "id": 13,
@@ -174,7 +186,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "크리스트교의 영향을 받은 홍수전이 '청(만주족)을 몰아내자'며 태평천국 운동(1851)을 일으켰어요."
 },
 {
 "id": 14,
@@ -189,7 +202,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "『천조 전무 제도』는 토지를 남녀 구분 없이 식구 수에 따라 나누자고 했어요. 그래서 농민의 지지를 받았어요."
 },
 {
 "id": 15,
@@ -198,7 +212,8 @@ window.QUESTIONS = [
 "q": "태평천국은 난징을 수도로 삼았다.",
 "answer": "O",
 "note": "",
-"extra": false
+"extra": false,
+"explain": "태평천국군은 진톈촌에서 봉기해 북쪽으로 올라가 난징을 점령하고 수도로 삼았어요."
 },
 {
 "id": 16,
@@ -213,7 +228,8 @@ window.QUESTIONS = [
 ],
 "answer": 3,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "지도층이 분열하고, 한인 신사층의 의용군과 서양 군대에 진압되어 1864년에 실패했어요. 일본군과는 관계없어요."
 },
 {
 "id": 17,
@@ -228,7 +244,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "중체서용(中體西用)은 중국의 제도는 그대로 두고 서양의 기술만 받아들이자는 뜻으로, 양무운동의 구호예요."
 },
 {
 "id": 18,
@@ -243,7 +260,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "이홍장 같은 한인 관료들이 양무운동을 이끌었어요. \"중국의 제도는 서양보다 우수하지만 기술은 못 미친다\"고 봤지요."
 },
 {
 "id": 19,
@@ -258,7 +276,8 @@ window.QUESTIONS = [
 ],
 "answer": 3,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "양무운동은 군수 공장·민간 기업, 근대식 해군, 신식 학교, 유학생 파견을 추진했어요. 입헌 군주제는 변법자강 운동이에요."
 },
 {
 "id": 20,
@@ -273,7 +292,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "정부의 체계적인 계획 없이 지방 관료들이 제각각 추진해서 큰 성과를 내지 못했어요."
 },
 {
 "id": 21,
@@ -288,7 +308,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "1894년 청일 전쟁에서 일본에 지면서, 기술만 들여온 양무운동의 한계가 드러났어요."
 },
 {
 "id": 22,
@@ -303,7 +324,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "캉유웨이·량치차오 같은 개혁적 지식인이 광서제의 지지를 받아 변법자강 운동을 이끌었어요."
 },
 {
 "id": 23,
@@ -318,7 +340,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "일본의 메이지 유신을 본보기로 삼아 입헌 군주제와 의회 제도를 들여오려 했어요."
 },
 {
 "id": 24,
@@ -327,7 +350,8 @@ window.QUESTIONS = [
 "q": "변법자강 운동은 서태후 등 보수파의 반발로 100여 일 만에 실패했다.",
 "answer": "O",
 "note": "",
-"extra": false
+"extra": false,
+"explain": "과거제 폐지, 서양식 교육, 신식 군대 육성을 시도했지만 서태후 등 보수파의 반발로 100여 일 만에 멈췄어요(1898)."
 },
 {
 "id": 25,
@@ -342,7 +366,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "양무운동은 서양의 기술만, 변법자강 운동은 법과 제도까지 바꾸려 했어요. '변법'은 법을 바꾼다는 뜻이에요."
 },
 {
 "id": 26,
@@ -357,7 +382,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "부청멸양(扶淸滅洋)은 청을 돕고 서양 세력을 몰아내자는 의화단의 구호예요."
 },
 {
 "id": 27,
@@ -372,7 +398,8 @@ window.QUESTIONS = [
 ],
 "answer": 3,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "의화단은 서양 세력의 상징인 철도·교회·외국 공관을 공격했어요. 청을 '돕자'고 했으니 황궁은 공격하지 않았어요."
 },
 {
 "id": 28,
@@ -387,7 +414,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "영국·일본·러시아 등 8개국 연합군이 의화단을 진압했고, 청은 이 나라들과 신축 조약을 맺었어요."
 },
 {
 "id": 29,
@@ -396,7 +424,8 @@ window.QUESTIONS = [
 "q": "신축 조약으로 베이징에 외국 군대가 머물 수 있게 되었다.",
 "answer": "O",
 "note": "",
-"extra": false
+"extra": false,
+"explain": "신축 조약으로 베이징에 외국 군대가 머물 수 있게 되었어요."
 },
 {
 "id": 30,
@@ -410,7 +439,8 @@ window.QUESTIONS = [
 "의화단 운동"
 ],
 "note": "태평천국 운동 → 양무운동 → 변법자강 운동 → 의화단 운동",
-"extra": false
+"extra": false,
+"explain": "태평천국 운동(1851) → 양무운동(1861) → 변법자강 운동(1898) → 의화단 운동(1899) 순서예요."
 },
 {
 "id": 31,
@@ -425,7 +455,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "쑨원은 삼민주의(민족·민권·민생)를 내세워 혁명 운동을 이끌었어요."
 },
 {
 "id": 32,
@@ -440,7 +471,8 @@ window.QUESTIONS = [
 ],
 "answer": 1,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "민권주의는 군주제 대신 민주 국가를 세우자는 주장이에요."
 },
 {
 "id": 33,
@@ -455,7 +487,8 @@ window.QUESTIONS = [
 ],
 "answer": 2,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "민생주의는 토지 소유를 고르게 해서 빈부 격차 없는 사회를 만들자는 주장이에요."
 },
 {
 "id": 34,
@@ -470,7 +503,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "청 정부가 철도를 국유화하자 반대 운동이 거세졌고, 이것이 신해혁명의 계기가 되었어요."
 },
 {
 "id": 35,
@@ -485,7 +519,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "1911년 우창에서 신식 군대가 봉기했고, 여러 성이 호응해 독립을 선언했어요(신해혁명)."
 },
 {
 "id": 36,
@@ -500,7 +535,8 @@ window.QUESTIONS = [
 ],
 "answer": 1,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "혁명파는 난징을 점령하고 쑨원을 임시 대총통으로 하는 중국 최초의 공화국, 중화민국을 세웠어요(1912)."
 },
 {
 "id": 37,
@@ -515,7 +551,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "위안스카이는 청 황제를 물러나게 하고(청 멸망) 임시 대총통 자리를 넘겨받았어요. 그 뒤 스스로 황제가 되려 했어요."
 },
 {
 "id": 38,
@@ -530,7 +567,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "군대를 가지고 지방을 다스린 세력이 군벌이에요. 위안스카이가 죽은 뒤 군벌끼리 다퉈 중국은 혼란에 빠졌어요."
 },
 {
 "id": 39,
@@ -539,7 +577,8 @@ window.QUESTIONS = [
 "q": "공화국은 왕이 없고 국민이 뽑은 대표가 다스리는 나라다.",
 "answer": "O",
 "note": "",
-"extra": false
+"extra": false,
+"explain": "공화국은 왕이 없고 국민이 뽑은 대표가 다스리는 나라예요. 중화민국이 중국 최초의 공화국이에요."
 },
 {
 "id": 40,
@@ -554,7 +593,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "\"청으로부터 독립하여 공화국을 건설하자\"는 신해혁명 때의 주장이에요(교과서 167쪽 역사 탐구)."
 },
 {
 "id": 41,
@@ -563,7 +603,8 @@ window.QUESTIONS = [
 "q": "에도 막부는 나가사키를 통해서만 제한적으로 무역했다.",
 "answer": "O",
 "note": "",
-"extra": false
+"extra": false,
+"explain": "에도 막부는 나가사키에서 네덜란드·청과만 조금 무역하고, 다른 나라의 통상 요구는 거부했어요."
 },
 {
 "id": 42,
@@ -578,7 +619,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "미국은 페리 함대를 앞세워 일본에 개항을 요구했어요. 일본 사람들은 검은 증기선을 '흑선'이라 불렀어요."
 },
 {
 "id": 43,
@@ -593,7 +635,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "미일 화친 조약(1854)으로 시모다·하코다테 두 항구를 열고, 미국에 최혜국 대우를 인정했어요."
 },
 {
 "id": 44,
@@ -608,7 +651,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "영사 재판권은 미국 사람이 일본에서 죄를 지어도 일본이 아니라 미국 영사가 재판하는 것이에요. '옆 반 심판이 판정!'"
 },
 {
 "id": 45,
@@ -623,7 +667,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "최혜국 대우는 일본이 다른 나라에 더 좋은 조건을 주면 미국도 저절로 같은 조건을 받는 것이에요. 일본은 이 약속을 받지 못했어요."
 },
 {
 "id": 46,
@@ -638,7 +683,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "관세 협의는 수입품에 매기는 세금(관세)을 일본이 혼자 정하지 못하고 미국과 협의해야 한다는 뜻이에요."
 },
 {
 "id": 47,
@@ -653,7 +699,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "쇼군은 막부를 이끌며 실제로 나라를 다스린 장군이에요. 천황은 가장 높았지만 정치는 하지 않았어요."
 },
 {
 "id": 48,
@@ -668,7 +715,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "굴욕 외교와 물가 상승으로 불만이 커지자 다이묘와 하급 무사가 막부를 무너뜨리고 천황 중심의 새 정부를 세웠어요."
 },
 {
 "id": 49,
@@ -683,7 +731,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "부국강병(富國強兵)은 나라를 부유하게, 군대를 강하게 하자는 뜻으로 메이지 유신의 목표예요."
 },
 {
 "id": 50,
@@ -698,7 +747,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "폐번치현은 다이묘가 다스리던 번을 없애고 현을 두어, 정부가 지방을 직접 다스리게 한 개혁이에요."
 },
 {
 "id": 51,
@@ -713,7 +763,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "징병제로 무사 대신 백성 누구나 군인이 되어 근대식 군대가 만들어졌어요."
 },
 {
 "id": 52,
@@ -722,7 +773,8 @@ window.QUESTIONS = [
 "q": "일본 제국 헌법(1889)에서 가장 높은 힘은 의회에 있었다.",
 "answer": "X",
 "note": "천황",
-"extra": false
+"extra": false,
+"explain": "일본 제국 헌법(1889)으로 헌법과 의회가 생겼지만, 가장 높은 힘은 천황에게 있었어요."
 },
 {
 "id": 53,
@@ -736,7 +788,8 @@ window.QUESTIONS = [
 "일본 제국 헌법"
 ],
 "note": "미일 화친 조약 → 미일 수호 통상 조약 → 메이지 유신 → 일본 제국 헌법",
-"extra": false
+"extra": false,
+"explain": "미일 화친 조약(1854) → 미일 수호 통상 조약(1858) → 메이지 유신(1868) → 일본 제국 헌법(1889) 순서예요."
 },
 {
 "id": 54,
@@ -751,7 +804,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "조선을 두고 청과 대립하던 일본은 동학 농민 운동을 핑계로 군대를 보내 청일 전쟁(1894)을 일으켰어요."
 },
 {
 "id": 55,
@@ -766,7 +820,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "청일 전쟁에서 이긴 일본은 청과 시모노세키 조약(1895)을 맺었어요."
 },
 {
 "id": 56,
@@ -781,7 +836,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "시모노세키 조약으로 일본은 타이완을 식민지로 차지하고 막대한 배상금을 받았어요."
 },
 {
 "id": 57,
@@ -796,7 +852,8 @@ window.QUESTIONS = [
 ],
 "answer": 1,
 "note": "군사에 84.6%",
-"extra": false
+"extra": false,
+"explain": "배상금 중 군비 확장비 62.7%와 임시 군비 21.9%를 더한 84.6%가 군사에 쓰였어요. 교육 기금은 2.7%뿐이었어요."
 },
 {
 "id": 58,
@@ -811,7 +868,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "러시아가 한반도와 만주로 세력을 넓히자, 러시아를 막으려는 영국이 일본과 영일 동맹(1902)을 맺었어요."
 },
 {
 "id": 59,
@@ -826,7 +884,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "러일 전쟁 뒤 미국의 중재로 포츠머스 조약(1905)을 맺어, 일본은 한반도와 만주에서 우월한 지위를 인정받았어요."
 },
 {
 "id": 60,
@@ -841,7 +900,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "일본은 1910년 대한 제국을 강제로 병합하고, 남만주로 세력을 넓혔어요."
 },
 {
 "id": 61,
@@ -855,7 +915,8 @@ window.QUESTIONS = [
 "대한 제국 강제 병합"
 ],
 "note": "청일 전쟁 → 시모노세키 조약 → 러일 전쟁 → 대한 제국 강제 병합",
-"extra": false
+"extra": false,
+"explain": "청일 전쟁(1894) → 시모노세키 조약(1895) → 러일 전쟁(1904) → 대한 제국 강제 병합(1910) 순서예요."
 },
 {
 "id": 62,
@@ -864,7 +925,8 @@ window.QUESTIONS = [
 "q": "을사늑약(1905)을 맺은 곳은 덕수궁 중명전이다.",
 "answer": "O",
 "note": "",
-"extra": true
+"extra": true,
+"explain": "을사늑약(1905)은 덕수궁 중명전에서 맺어졌어요. 우리 역사 시간에 더 자세히 배워요."
 },
 {
 "id": 63,
@@ -879,7 +941,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "중국은 신해혁명으로 공화국(중화민국)이 되었고, 일본은 이웃을 침략하는 제국이 되었어요. 같은 출발, 다른 도착!"
 },
 {
 "id": 64,
@@ -894,7 +957,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "청이 양무운동으로 기술만 들여올 때, 일본은 메이지 유신으로 제도까지 나라 전체를 바꿨어요."
 },
 {
 "id": 65,
@@ -909,7 +973,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "청은 AI 기능이 빠진 '껍데기 안경'만 산 셈이에요(양무운동). 일본은 안경도 사고 연습법과 규칙까지 바꿨어요(메이지 유신)."
 },
 {
 "id": 66,
@@ -924,7 +989,8 @@ window.QUESTIONS = [
 ],
 "answer": 0,
 "note": "",
-"extra": false
+"extra": false,
+"explain": "\"옆 반 학생이 반칙해도 옆 반 심판이 판정한다\"는 영사 재판권이에요. 미국 사람의 죄를 미국 영사가 재판했어요."
 },
 {
 "id": 67,
@@ -938,6 +1004,7 @@ window.QUESTIONS = [
 "신해혁명"
 ],
 "note": "아편 전쟁(1840) → 메이지 유신(1868) → 청일 전쟁(1894) → 신해혁명(1911)",
-"extra": false
+"extra": false,
+"explain": "아편 전쟁(1840) → 메이지 유신(1868) → 청일 전쟁(1894) → 신해혁명(1911) 순서예요."
 }
 ];

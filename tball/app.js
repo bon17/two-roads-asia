@@ -223,6 +223,8 @@ async function hostStart() {
   H.db.on(`rooms/${code}/players`, v => { H.players = v || {}; assignTeams(); renderHost(); });
   H.db.on(`rooms/${code}/cardReq`, v => { if (v) handleCardReq(v); });
   setInterval(hostTick, 250);
+  setupRules();
+  setTimeout(() => { if (H.st.phase === "lobby" && !IN_FRAME) openRules(0); }, 700);
 }
 const R = p => `rooms/${H.code}/${p}`;
 async function putState(patch) {
@@ -415,6 +417,104 @@ async function handleCardReq(req) {
   await putState(patch);
 }
 
+/* ============================================================
+   게임 방법 창 (TV에 띄워 학생에게 설명) — 글은 모두 이 파일에서 만든 것이라 innerHTML로 넣는다
+   ============================================================ */
+function rulePages() {
+  const T = TEAM, img = n => IMG(n);
+  const card = k => { const c = TCARDS[k]; return `<div><img src="${img(c.img)}" alt=""><h3>${c.name}</h3>
+    <p>📜 진짜 뜻: ${c.right}</p><p>🎮 게임 효과: <b>${c.effect}</b></p><p>⏰ 쓸 수 있을 때: ${c.need}</p></div>`; };
+  return [
+    `<h2>⚾ 역사 티볼 리그</h2>
+     <p>오늘 배운 <b>아시아의 국민 국가 건설 운동</b>을 문제로 풀면서 티볼 경기를 해요.</p>
+     <div class="teams2"><div><img src="${img("team_cn")}" alt=""><span class="t-cn">🔥 ${T.cn.name}</span></div><div style="font-size:3em">VS</div>
+       <div><img src="${img("team_jp")}" alt=""><span class="t-jp">🌊 ${T.jp.name}</span></div></div>
+     <p>모두 <b>자기 태블릿</b>으로 답하고, 점수판은 TV에 나와요. 문제를 잘 맞힐수록 <b>안타·홈런</b>으로 점수를 내요!</p>`,
+    `<h2>📱 입장하기</h2>
+     <ol><li>TV의 <b>QR</b>을 태블릿 카메라로 찍어요. (또는 주소로 들어가 <b>방 번호 4자리</b>를 눌러요)</li>
+     <li><b>내 학번 4자리</b>를 눌러요. 예: 2211</li>
+     <li>팀은 <b>자동</b>으로 정해져요. 두 팀 인원이 맞게 나뉘어요.</li>
+     <li>태블릿에 내 팀(🔥 ${T.cn.name} / 🌊 ${T.jp.name})이 보이면 준비 끝!</li></ol>`,
+    `<h2>❓ 한 타석 = 문제 1개</h2>
+     <ul><li>선생님이 <b>⚾ 투구</b>를 누르면 모든 태블릿에 같은 문제가 떠요. <b>⏱ 20초!</b></li>
+     <li>공격 팀만 푸는 게 아니에요. <b>수비 팀도 같은 문제</b>를 풀어요.</li>
+     <li>보기 순서는 <b>사람마다 달라요</b>. 옆 친구가 누르는 자리를 따라 하면 틀려요!</li>
+     <li>답은 <b>한 번만</b> 낼 수 있어요. 시간 안에 안 내면 틀린 것으로 쳐요.</li>
+     <li>정답이 공개되면 <b>💡 해설</b>이 떠요. 꼭 읽어 봐요!</li></ul>`,
+    `<h2>🏏 안타·홈런은 어떻게 쳐요?</h2>
+     <p>우리 팀 <b>정답률</b> = 우리 팀에서 맞힌 사람 ÷ 우리 팀 사람 수</p>
+     <p>공격 팀이 안타를 치려면 ① 정답률 <b>50% 이상</b>, 그리고 ② <b>수비 팀보다 정답률이 높아야</b> 해요. 아니면 <b>아웃!</b></p>
+     <div class="ladder">
+       <span>50~69%</span><div class="lb" style="width:40%;background:#7bc96f">안타 (1루까지)</div>
+       <span>70~84%</span><div class="lb" style="width:60%;background:#3fb0e8">2루타</div>
+       <span>85~94%</span><div class="lb" style="width:80%;background:#9b6bff">3루타</div>
+       <span>95% 이상</span><div class="lb" style="width:100%;background:#ff8a00">홈런! 🎉</div></div>
+     <p>주자가 홈까지 돌아오면 <b>1점</b>. <b>아웃 3개</b>면 공격과 수비가 바뀌어요.</p>
+     <div class="ex2"><div>예) 🔥공격 <b>80%</b> vs 🌊수비 60%<br>→ <b>2루타!</b></div><div>예) 🔥공격 80% vs 🌊수비 <b>85%</b><br>→ 수비 성공, <b>아웃!</b></div></div>`,
+    `<h2>📜 불평등 조약 카드</h2>
+     <p>오늘 배운 <b>불평등 조약</b>의 내용 세 가지를 카드로 만들었어요. 팀마다 3장, <b>한 경기에 한 번씩</b>만!</p>
+     <p>수비할 때 <b>🧢 수비 주장</b>(회마다 무작위)이 판정 직후에 써요. <b>진짜 뜻</b>을 맞혀야 효과가 나고, 틀리면 카드가 사라져요!</p>
+     <div class="cardrow">${card("consul")}${card("tariff")}${card("mfn")}</div>`,
+    `<h2>🏆 경기 끝</h2>
+     <ul><li>선생님이 <b>🏁 마지막 회</b>를 누르면, 그 회까지 하고 경기가 끝나요.</li>
+     <li>TV에 나오는 것: <b>승리 팀</b>, <b>정답왕 3명</b>(학번), <b>우리 반이 많이 틀린 문제 3개</b></li>
+     <li>많이 틀린 문제는 해설과 함께 다시 보며 복습해요.</li>
+     <li>점수보다 중요한 건 오늘 배운 내용을 다시 떠올리는 거예요! 😊</li></ul>`,
+    `<h2>👩‍🏫 선생님 버튼 안내 <span class="tag">선생님용</span></h2>
+     <table class="btntable">
+      <tr><td>📖 게임 방법</td><td>지금 이 설명 창을 열어요</td><td>언제나</td></tr>
+      <tr><td>🧪 테스트 모드</td><td>학생 6명이 자동으로 답하는 시험 창 (실제 수업 방과 무관)</td><td>시작 전</td></tr>
+      <tr><td>연습 문제</td><td>점수에 들어가지 않는 문제 1개로 연습</td><td>시작 전</td></tr>
+      <tr><td>⚾ 경기 시작</td><td>1회 초부터 시작 (두 팀 모두 1명 이상 있어야 켜져요)</td><td>시작 전</td></tr>
+      <tr><td>⏱ 바로 마감</td><td>20초가 지나기 전에 문제를 닫고 판정</td><td>문제 푸는 중</td></tr>
+      <tr><td>💡 해설</td><td>해설 창을 닫거나 다시 열어요</td><td>판정 뒤</td></tr>
+      <tr><td>다음 투구 ▶</td><td>다음 문제 (아웃 3개면 '공수 교대 ▶'로 바뀌어요)</td><td>판정 뒤</td></tr>
+      <tr><td>⚾ 투구</td><td>공수 교대 뒤 첫 문제를 내요</td><td>공수 교대 뒤</td></tr>
+      <tr><td>👥 학생 관리</td><td>이름표를 눌러 학생을 다른 팀으로 옮겨요</td><td>경기 중</td></tr>
+      <tr><td>🏁 마지막 회</td><td>이번 회가 끝나면 경기 종료 (다시 누르면 취소)</td><td>경기 중</td></tr>
+      <tr><td>경기 끝</td><td>바로 끝내고 결과 보기</td><td>경기 중</td></tr>
+      <tr><td>새 경기</td><td>점수를 지우고 다시 (학생은 그대로)</td><td>끝난 뒤</td></tr>
+     </table>`,
+  ];
+}
+let rulesAt = 0;
+function openRules(i) { rulesAt = i || 0; show("#hRules", true); renderRules(); }
+function closeRules() { show("#hRules", false); }
+function renderRules() {
+  const pages = rulePages(); rulesAt = Math.max(0, Math.min(pages.length - 1, rulesAt));
+  $("#hRulesPage").innerHTML = pages[rulesAt];
+  const d = $("#hRulesDots"); d.textContent = "";
+  pages.forEach((_, i) => { const b = mk("button", i === rulesAt ? "on" : ""); b.setAttribute("aria-label", `${i + 1}쪽`); b.onclick = () => { rulesAt = i; renderRules(); }; d.append(b); });
+  $("#hRulesPrev").disabled = rulesAt === 0;
+  $("#hRulesNext").textContent = rulesAt === pages.length - 1 ? "닫기 ✓" : "다음 ▶";
+}
+function setupRules() {
+  $("#hRulesX").onclick = closeRules;
+  $("#hRulesPrev").onclick = () => { rulesAt--; renderRules(); };
+  $("#hRulesNext").onclick = () => { if (rulesAt >= rulePages().length - 1) closeRules(); else { rulesAt++; renderRules(); } };
+  window.addEventListener("keydown", e => {
+    if ($("#hRules").classList.contains("hidden")) return;
+    if (e.key === "ArrowRight") $("#hRulesNext").click(); else if (e.key === "ArrowLeft" && rulesAt > 0) $("#hRulesPrev").click(); else if (e.key === "Escape") closeRules();
+  });
+}
+
+/* 해설 팝업 (TV): 판정이 먼저 보이고 잠시 뒤 뜬다 */
+function renderExplainHost() {
+  const s = H.st, box = $("#hExplain");
+  if (s.phase !== "reveal" || !s.q) { H.exOpen = false; show(box, false); return; }
+  if (H.exAuto !== s.pitchNo) {
+    H.exAuto = s.pitchNo; H.exOpen = false; const pn = s.pitchNo;
+    setTimeout(() => { if (H.st.phase === "reveal" && H.st.pitchNo === pn) { H.exOpen = true; renderExplainHost(); renderCtrl(); } }, 1400);
+  }
+  show(box, H.exOpen);
+  if (!H.exOpen) return;
+  const q = QBY[s.q.id]; if (!q) return;
+  box.textContent = "";
+  box.append(mk("h2", "", "💡 해설"), mk("div", "q", (q.type === "order" ? "[순서] " : "") + q.q),
+    mk("div", "ans", "✔ 정답: " + correctText(q)), mk("div", "txt", q.explain || q.note || ""));
+  const b = mk("button", "btn gold", "닫기"); b.onclick = () => { H.exOpen = false; renderExplainHost(); renderCtrl(); }; box.append(b);
+}
+
 /* ---------- 교사 화면 그리기 ---------- */
 function renderJoin() {
   const url = location.origin + location.pathname + "?room=" + H.code;
@@ -446,11 +546,13 @@ function renderCtrl() {
   const n = present("cn").length + present("jp").length;
   if (s.phase === "lobby") {
     c.append(mk("div", "info", `접속 ${n}명 · 방 ${H.code}`), mk("div", "sp"));
+    c.append(ctrlButton("📖 게임 방법", "", () => openRules(0)));
     if (!IN_FRAME) c.append(ctrlButton("🧪 테스트 모드", "", () => window.open(location.pathname + "?test", "_blank")));
     c.append(ctrlButton("연습 문제", "", () => startPitch(true), n === 0),
       ctrlButton("⚾ 경기 시작", "gold", () => startPitch(false), present("cn").length === 0 || present("jp").length === 0));
   } else if (s.phase === "ready") {
     c.append(mk("div", "info", s.finalReq ? "🏁 마지막 회 진행 중" : `접속 ${n}명`), mk("div", "sp"),
+      ctrlButton("📖 게임 방법", "", () => openRules(3)),
       ctrlButton("👥 학생 관리", "", toggleRoster),
       ctrlButton(s.finalReq ? "🏁 마지막 회 취소" : "🏁 마지막 회", "", () => putState({ finalReq: !s.finalReq })),
       ctrlButton("⚾ 투구", "gold", () => startPitch(false)));
@@ -461,6 +563,7 @@ function renderCtrl() {
     const waitCard = !s.practice && s.started && !s.cardPlay && s.captain[other(offenseOf(s))] &&
       CARD_KEYS.some(k => cardAllowed(s, other(offenseOf(s)), k));
     c.append(mk("div", "info", waitCard ? `🧢 수비 주장 ${s.captain[other(offenseOf(s))]}이(가) 조약 카드를 쓸 수 있어요` : ""), mk("div", "sp"),
+      ctrlButton(H.exOpen ? "💡 해설 닫기" : "💡 해설", "", () => { H.exOpen = !H.exOpen; renderExplainHost(); renderCtrl(); }),
       ctrlButton("👥 학생 관리", "", toggleRoster));
     if (s.started && !s.practice) c.append(ctrlButton(s.finalReq ? "🏁 마지막 회 취소" : "🏁 마지막 회", "", () => putState({ finalReq: !s.finalReq })));
     c.append(ctrlButton(s.practice || !s.started ? "확인 ▶" : (s.outs >= 3 ? "공수 교대 ▶" : "다음 투구 ▶"), "gold", nextAfterReveal));
@@ -501,7 +604,7 @@ function renderHost() {
     const cap = $(t === "cn" ? "#hCapCn" : "#hCapJp");
     cap.textContent = s.started && t !== off && s.captain[t] ? `🧢 수비 주장 ${s.captain[t]}` : (s.started && t === off ? "공격 중" : "");
   }
-  renderField(); renderPanel(); renderFinal();
+  renderField(); renderPanel(); renderFinal(); renderExplainHost();
 }
 const BASE_POS = [[86, 48], [50, 14], [14, 48]];  // 1루, 2루, 3루 (운동장 그림 위 % 위치)
 function renderField() {
@@ -577,7 +680,9 @@ function renderFinal() {
   (f.missed || []).forEach(m => {
     const q = QBY[m.qid]; if (!q) return;
     const li = mk("li"); li.append(mk("div", "", `${q.type === "order" ? "[순서] " : ""}${q.q} (오답 ${m.wrong}%)`));
-    const b = mk("b", "", "✔ " + correctText(q) + (q.note && q.type !== "order" ? ` (${q.note})` : "")); li.append(b); ms.append(li);
+    const b = mk("b", "", "✔ " + correctText(q)); li.append(b);
+    if (q.explain) li.append(mk("div", "", "💡 " + q.explain));
+    ms.append(li);
   });
   if (!(f.missed || []).length) ms.append(mk("li", "", "많이 틀린 문제가 없어요. 훌륭해요!"));
 }
@@ -613,6 +718,9 @@ function studentMain() {
   $("#sOrderReset").onclick = () => { S.orderPick = []; renderQuestion(); };
   $("#sOrderSend").onclick = sendOrder;
   $("#sCmCancel").onclick = () => show("#sCardModal", false);
+  $("#sExOk").onclick = () => show("#sExModal", false);
+  $("#sRulesBtn").onclick = openStudentRules;
+  $("#sRulesOk").onclick = () => show("#sRulesModal", false);
   renderJoinStep();
   // 테스트 모드: 학번을 받아 바로 입장
   const auto = qs.get("autoid");
@@ -683,6 +791,7 @@ function screens(id) { ["#sWait", "#sQ", "#sSent", "#sReveal", "#sOver"].forEach
 
 function renderStudent() {
   const s = S.st, t = myTeam();
+  if (s.phase !== "reveal") show("#sExModal", false);
   // 위쪽 띠
   if (t) { $("#sEmblem").src = IMG(TEAM[t].img); $("#sWho").textContent = `${S.id} · ${TEAM[t].name}`; $("#sWho").className = "who t-" + t; }
   else { $("#sEmblem").src = IMG("ball"); $("#sWho").textContent = `${S.id} · 팀 배정 중…`; }
@@ -705,7 +814,7 @@ function renderStudent() {
     else { screens("#sQ"); renderQuestion(); }
     return;
   }
-  if (s.phase === "reveal") { screens("#sReveal"); renderReveal(); return; }
+  if (s.phase === "reveal") { screens("#sReveal"); renderReveal(); renderExplainStudent(); return; }
   if (s.phase === "over") { screens("#sOver"); renderOver(); }
 }
 
@@ -817,6 +926,38 @@ function renderOver() {
   $("#sOverScore").textContent = `${TEAM.cn.name} ${s.score.cn} : ${s.score.jp} ${TEAM.jp.name}`;
   const rank = (f.top || []).findIndex(p => p.id === S.id);
   $("#sOverMe").textContent = rank >= 0 ? `${["🥇", "🥈", "🥉"][rank]} 정답왕 ${rank + 1}등! (${f.top[rank].ok}/${f.top[rank].n})` : "수고했어요! 오늘 배운 내용, 다시 한 번 떠올려 봐요.";
+}
+
+/* 학생: 해설 팝업과 규칙 */
+function renderExplainStudent() {
+  const s = S.st;
+  if (s.phase !== "reveal" || !s.q) { show("#sExModal", false); return; }
+  if (S.exShown === s.pitchNo) return;
+  S.exShown = s.pitchNo;
+  if (S.bot) return;                                  // 테스트 봇은 팝업 없이
+  const q = QBY[s.q.id]; if (!q) return;
+  const mine = S.myAns;
+  $("#sExRes").textContent = !mine ? "⏰ 시간 초과" : mine.c ? "✅ 맞았어요!" : "❌ 아쉬워요";
+  $("#sExAns").textContent = "정답: " + correctText(q);
+  $("#sExTxt").textContent = "💡 " + (q.explain || q.note || "");
+  const t = myTeam(), def = s.result ? other(s.result.off) : "";
+  $("#sExOk").textContent = (!s.practice && t === def && s.captain[def] === S.id && !s.cardPlay) ? "확인 (조약 카드 쓰러 가기)" : "확인";
+  show("#sExModal", true);
+}
+function openStudentRules() {
+  const b = $("#sRulesBody"); b.textContent = "";
+  const ul = mk("ul");
+  ["선생님이 ⚾ 투구를 누르면 문제가 떠요. 20초 안에 답해요. 답은 한 번만!",
+   "두 팀이 같은 문제를 동시에 풀어요. 보기 순서는 사람마다 달라요.",
+   "공격 팀 정답률이 50% 이상이고 수비 팀보다 높으면 안타! 높을수록 2루타·3루타·홈런(95% 이상).",
+   "아니면 아웃. 아웃 3개면 공수 교대. 주자가 홈에 들어오면 1점.",
+   "수비할 때 🧢 수비 주장은 불평등 조약 카드를 쓸 수 있어요. 카드의 진짜 뜻을 맞혀야 효과가 나요!"].forEach(t => ul.append(mk("li", "", t)));
+  b.append(ul);
+  for (const k of CARD_KEYS) {
+    const c = TCARDS[k], d = mk("div", "tcard"), im = mk("img"); im.src = IMG(c.img); im.alt = "";
+    const tx = mk("div"); tx.append(mk("span", "", `${c.name} → ${c.effect}`), mk("small", "", "뜻: " + c.right)); d.append(im, tx); b.append(d);
+  }
+  show("#sRulesModal", true);
 }
 
 /* ---------- 테스트용 자동 학생(봇) ---------- */

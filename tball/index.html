@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 <style>
 :root{
+  --badge:56px; /* 오른쪽 아래 'Powered by Netlify' 표시 자리 */
   --ink:#3b2a20; --paper:#fffaf0; --card:#fff; --gold:#ffc93c;
   --cn:#ff4b4b; --cn-soft:#ffe1e1; --jp:#2f7bff; --jp-soft:#dfeaff;
   --ok:#22b35e; --bad:#ff5a5a; --sky1:#bfe8ff; --sky2:#fff3c4;
@@ -26,12 +27,12 @@ button:disabled{cursor:not-allowed;opacity:.45}
 .btn.gold{background:var(--gold)}
 .btn.cn{background:var(--cn);color:#fff}
 .btn.jp{background:var(--jp);color:#fff}
-.mode-banner{position:fixed;left:50%;bottom:6px;transform:translateX(-50%);z-index:50;background:#fff7d6;border:3px solid var(--ink);
+.mode-banner{position:fixed;left:50%;bottom:calc(var(--badge) - 44px);transform:translateX(-50%);z-index:50;background:#fff7d6;border:3px solid var(--ink);
   border-radius:999px;padding:4px 14px;font-size:14px;white-space:nowrap;pointer-events:none}
 .t-cn{color:var(--cn)} .t-jp{color:var(--jp)}
 
 /* =================== 학생 화면 =================== */
-#student{max-width:760px;margin:0 auto;padding:14px 14px 48px;min-height:100vh;display:flex;flex-direction:column;gap:14px}
+#student{max-width:760px;margin:0 auto;padding:14px 14px calc(48px + var(--badge));min-height:100vh;display:flex;flex-direction:column;gap:14px}
 .s-top{display:flex;align-items:center;gap:10px;padding:8px 12px}
 .s-top img{width:54px;height:54px;border-radius:50%}
 .s-top .who{font-size:24px;flex:1}
@@ -77,12 +78,60 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
 .tcard span{display:block}
 .tcard small{display:block;font-size:16px;opacity:.75;line-height:1.3}
 .captain-box{border:4px dashed var(--ink);border-radius:20px;padding:12px;margin-top:14px;background:#fffdf3}
-.modal{position:fixed;inset:0;background:rgba(59,42,32,.5);display:flex;align-items:center;justify-content:center;padding:14px;z-index:40}
+.modal{position:fixed;inset:0;background:rgba(59,42,32,.5);display:flex;align-items:center;justify-content:center;padding:14px 14px var(--badge);z-index:40}
 .modal .box{max-width:560px;width:100%;padding:20px;text-align:center;max-height:100%;overflow:auto}
 .modal h3{font-size:28px;margin:4px 0 12px}
 
+/* 게임 방법 창 (TV) */
+.h-overlay{position:fixed;inset:0;z-index:30;background:rgba(59,42,32,.55);display:flex;align-items:center;justify-content:center;padding:2vh 2vw var(--badge)}
+.rules{position:relative;width:min(96vw,170vh);height:calc(100vh - 2vh - var(--badge));display:flex;flex-direction:column;padding:1.6em 2.2em 1.2em;font-size:min(1.05vw,1.9vh)}
+.rules .x{position:absolute;right:.8em;top:.6em;font-size:2em;background:none;border:none}
+.rules-page{flex:1;min-height:0;overflow:auto}
+.rules-page h2{font-size:3.4em;margin:.1em 0 .4em}
+.rules-page p,.rules-page li{font-size:2.1em;line-height:1.5;margin:.25em 0}
+.rules-page ul,.rules-page ol{margin:.2em 0;padding-left:1.4em}
+.rules-page b{color:#d9480f;font-weight:normal}
+.rules-page .tag{display:inline-block;font-size:.75em;background:#ffe8a3;border:.12em solid var(--ink);border-radius:999px;padding:0 .6em;vertical-align:middle}
+.rules-nav{display:flex;align-items:center;gap:1em;margin-top:.6em}
+.rules-nav .dots{flex:1;display:flex;justify-content:center;gap:.6em}
+.rules-nav .dots button{width:1.4em;height:1.4em;border-radius:50%;border:.15em solid var(--ink);background:#fff;padding:0}
+.rules-nav .dots button.on{background:var(--gold)}
+#host .rules .btn{font-size:1.8em}
+.teams2{display:flex;gap:3em;justify-content:center;align-items:center;margin:.6em 0}
+.teams2 div{text-align:center;font-size:2.6em}
+.teams2 img{width:4.5em;height:4.5em;border-radius:50%;display:block;margin:0 auto .2em}
+.ladder{display:grid;grid-template-columns:auto 1fr;gap:.35em .8em;align-items:center;margin:.4em 0;font-size:2em}
+.ladder .lb{height:1.3em;border:.12em solid var(--ink);border-radius:.4em;display:flex;align-items:center;padding-left:.5em;font-size:.8em;color:#fff;-webkit-text-stroke:0}
+.ex2{display:grid;grid-template-columns:1fr 1fr;gap:1em;margin-top:.5em}
+.ex2 div{border:.15em solid var(--ink);border-radius:.8em;padding:.5em .8em;background:#fffdf3;font-size:1.8em;line-height:1.45}
+.cardrow{display:grid;grid-template-columns:repeat(3,1fr);gap:1em;margin-top:.5em}
+.cardrow>div{border:.15em solid var(--ink);border-radius:1em;padding:.6em;background:#fffdf5;text-align:center}
+.cardrow img{width:5em;height:5em;border-radius:50%}
+.cardrow h3{font-size:2.1em;margin:0}
+.cardrow p{font-size:1.6em!important;line-height:1.35;margin:.2em 0!important;text-align:left}
+.btntable{width:100%;border-collapse:collapse;font-size:1.7em}
+.btntable td{border-bottom:.08em solid #e2d6c3;padding:.12em .4em;vertical-align:top}
+.btntable td:first-child{white-space:nowrap}
+.btntable td:last-child{opacity:.7;white-space:nowrap}
+/* 해설 팝업 (TV) */
+#hMain{position:relative}
+.explain{position:absolute;top:0;bottom:0;right:0;left:calc(44% + 1.2vw);z-index:5;padding:1.4em 1.8em;display:flex;flex-direction:column;gap:.8em;
+  background:#fffbe8;animation:exin .35s cubic-bezier(.2,1.4,.4,1)}
+@keyframes exin{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
+.explain h2{font-size:2.6em;margin:0}
+.explain .ans{font-size:2.4em;background:#c9f5d7;border:.12em solid #15803d;border-radius:.6em;padding:.3em .7em}
+.explain .txt{font-size:2.4em;line-height:1.5;flex:1}
+.explain .q{font-size:1.5em;opacity:.7}
+/* 학생 팝업 */
+.s-ex .res{font-size:44px;margin:4px 0}
+.s-ex .ans{font-size:22px;background:#c9f5d7;border:3px solid #15803d;border-radius:14px;padding:8px 12px;margin:10px 0}
+.s-ex .txt{font-size:21px;line-height:1.55;text-align:left;background:#fffbe8;border:3px solid var(--ink);border-radius:14px;padding:10px 14px}
+.s-rules{text-align:left}
+.s-rules li{font-size:19px;line-height:1.5;margin:6px 0}
+.s-rules .tcard{min-height:0;box-shadow:none;margin:6px 0}
+
 /* =================== 교사(TV) 화면 =================== */
-#host{position:fixed;inset:0;display:flex;flex-direction:column;padding:1.2vh 1.2vw;gap:1.2vh;font-size:min(1.05vw,1.9vh)}
+#host{position:fixed;inset:0;display:flex;flex-direction:column;padding:1.2vh 1.2vw calc(1.2vh + var(--badge));gap:1.2vh;font-size:min(1.05vw,1.9vh)}
 #host .btn{font-size:1.5em;min-height:3.4em;padding:0 1.1em;border-radius:.9em}
 .h-score{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:1.2em;padding:.5em 1.2em}
 .h-team{display:flex;align-items:center;gap:.8em}
@@ -147,7 +196,7 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
 .chip.off{opacity:.4}
 .hint{font-size:1.2em;opacity:.7}
 /* 테스트 모드 창 */
-#test{position:fixed;inset:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,34%);gap:10px;padding:10px}
+#test{position:fixed;inset:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,34%);gap:10px;padding:10px 10px var(--badge)}
 #tHost{width:100%;height:100%;border:4px solid var(--ink);border-radius:16px;background:#fff}
 .tside{display:flex;flex-direction:column;gap:10px;min-height:0}
 .tinfo{padding:10px 14px}
@@ -200,6 +249,7 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
     <div class="team-name" id="sWaitTeam"></div>
     <p id="sWaitText"></p>
     <div class="captain-box hidden" id="sCapInfo"></div>
+    <button class="btn" id="sRulesBtn" style="margin-top:14px">📖 게임 규칙 보기</button>
   </div>
 
   <!-- 문제 -->
@@ -241,6 +291,24 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
   </div>
 </div>
 
+<!-- 해설 팝업 (학생) -->
+<div class="modal hidden" id="sExModal">
+  <div class="box s-ex">
+    <div class="res" id="sExRes"></div>
+    <div class="ans" id="sExAns"></div>
+    <div class="txt" id="sExTxt"></div>
+    <button class="btn gold" id="sExOk" style="margin-top:14px;width:100%;min-height:72px">확인</button>
+  </div>
+</div>
+<!-- 게임 규칙 (학생) -->
+<div class="modal hidden" id="sRulesModal">
+  <div class="box s-rules">
+    <h3>📖 게임 규칙</h3>
+    <div id="sRulesBody"></div>
+    <button class="btn gold" id="sRulesOk" style="margin-top:12px;width:100%">알겠어요</button>
+  </div>
+</div>
+
 <!-- 카드 퀴즈 -->
 <div class="modal hidden" id="sCardModal">
   <div class="box">
@@ -278,6 +346,7 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
   <div class="h-main hidden" id="hMain">
     <div class="field"><div class="fimg" id="hField"><img class="bg" data-img="field" alt="티볼 운동장"></div></div>
     <div class="box panel" id="hPanel"></div>
+    <div class="box explain hidden" id="hExplain"></div>
   </div>
 
   <!-- 끝 -->
@@ -288,6 +357,17 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
   </div>
 
   <div class="h-ctrl" id="hCtrl"></div>
+  <div class="h-overlay hidden" id="hRules">
+    <div class="box rules">
+      <button class="x" id="hRulesX" aria-label="닫기">✕</button>
+      <div class="rules-page" id="hRulesPage"></div>
+      <div class="rules-nav">
+        <button class="btn" id="hRulesPrev">◀ 이전</button>
+        <div class="dots" id="hRulesDots"></div>
+        <button class="btn gold" id="hRulesNext">다음 ▶</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ============ 테스트 모드 창 ============ -->

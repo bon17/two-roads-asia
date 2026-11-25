@@ -10,6 +10,9 @@ for line in md.splitlines():
     h = re.match(r"^## (.+)$", line)
     if h:
         part = h.group(1).split("(")[0].strip(); continue
+    ex = re.match(r"^\s+- 💡 해설:\s*(.*)$", line)
+    if ex and qs:
+        qs[-1]["explain"] = ex.group(1).strip(); continue
     m = re.match(r"^(\d+)\. (.*)$", line)
     if not m: continue
     n, t = int(m.group(1)), m.group(2).strip()
@@ -34,6 +37,8 @@ for line in md.splitlines():
     qs.append({"id": n, "part": part, "type": "mc", "q": mm.group(1).strip(), "options": opts,
                "answer": CIRC.index(mm.group(6)), "note": mm.group(8) or "", "extra": extra})
 assert len(qs) == 67, len(qs)
+missing = [q["id"] for q in qs if not q.get("explain")]
+assert not missing, ("해설 없는 문제", missing)
 out = "/* docs/question-bank.md에서 자동으로 만든 파일. 직접 고치지 말고 tools/build_questions.py를 다시 실행하세요. */\nwindow.QUESTIONS = " + json.dumps(qs, ensure_ascii=False, indent=0) + ";\n"
 (root/"tball/questions.js").write_text(out, encoding="utf-8")
 from collections import Counter
