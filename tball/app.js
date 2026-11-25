@@ -141,10 +141,20 @@ async function FirebaseDB(cfg) {
     now: () => Date.now() + offset,
   };
 }
+const FORCE_LOCAL = new URLSearchParams(location.search).has("local");
+function withTimeout(p, ms, msg) { return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(msg)), ms))]); }
+function explain(e) {
+  const m = String((e && (e.code || e.message)) || e);
+  if (/admin-restricted|operation-not-allowed/.test(m)) return "Firebase에서 '익명 로그인'이 꺼져 있어요. 안내서 2단계를 확인해 주세요.";
+  if (/permission|PERMISSION_DENIED/i.test(m)) return "Firebase 규칙이 막고 있어요. 안내서 3단계의 규칙을 그대로 붙여 넣고 '게시'했는지 확인해 주세요.";
+  if (/network|timeout|시간/i.test(m)) return "Firebase 서버에 닿지 않아요. 인터넷 연결이나 학교 네트워크 차단을 확인해 주세요.";
+  return "Firebase 연결 오류: " + m;
+}
 async function connect() {
-  if (window.FIREBASE_CONFIG && window.FB) {
-    try { return await FirebaseDB(window.FIREBASE_CONFIG); }
-    catch (e) { alert("Firebase 연결에 실패했어요: " + (e && e.message ? e.message : e)); throw e; }
+  if (window.FIREBASE_CONFIG && window.FB && !FORCE_LOCAL) {
+    const db = await withTimeout(FirebaseDB(window.FIREBASE_CONFIG), 12000, "timeout: 로그인 서버 응답 없음");
+    await withTimeout(db.get("rooms/0000/meta"), 12000, "timeout: 데이터베이스 응답 없음");  // 연결과 규칙을 함께 확인
+    return db;
   }
   show("#modeBanner", true);
   return LocalDB();
@@ -177,6 +187,14 @@ const H = { db: null, code: "", st: normState(null), players: {}, answers: {}, u
 
 async function hostMain() {
   show("#host", true);
+  try { await hostStart(); }
+  catch (e) {
+    $("#hCode").textContent = "연결 실패";
+    $("#hUrl").textContent = explain(e);
+    $("#hUrl").style.cssText = "font-size:1.6em;color:#d62828;opacity:1";
+  }
+}
+async function hostStart() {
   H.db = await connect();
   // 방 번호: 이 브라우저가 만든 방이 있으면 이어서, 없으면 새로
   let code = store.get("hostRoom", "");
@@ -606,7 +624,8 @@ async function join() {
     S.db.on(`rooms/${code}/state`, v => { S.st = normState(v); watchMyAnswer(); renderStudent(); });
     setInterval(tickStudent, 250);
   } catch (e) {
-    err.textContent = "연결에 실패했어요. 다시 눌러 주세요";
+    S.db = null;
+    err.textContent = "연결에 실패했어요. 다시 눌러 주세요. (" + explain(e) + ")";
   } finally { $("#sJoinBtn").disabled = false; }
 }
 const SR = p => `rooms/${S.code}/${p}`;
