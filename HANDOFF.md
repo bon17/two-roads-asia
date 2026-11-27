@@ -8,7 +8,7 @@
 - 2판에서 바뀐 키워드 8개: 아편 전쟁, 태평천국 운동, 양무운동, 변법자강 운동, 의화단 운동, 신해혁명, 미일 수호 통상 조약, 메이지 유신
 
 ## 배포 주소
-- 티볼 리그: https://history-tball.netlify.app/ (교사는 끝에 `#host`). 선생님이 Netlify Drop으로 올림. 실제 기기 시험 결과는 아직 받지 못함.
+- 티볼 리그: https://history-tball.netlify.app/ (교사는 끝에 `#host`). 2026-11-27 배포: 새 방 만들기·학생 내보내기·문제 시간·게임 방법·해설 팝업까지 반영. 실제 기기에서 새 기능 확인 결과는 아직 받지 못함. 선생님이 Netlify Drop으로 올림. 실제 기기 시험 결과는 아직 받지 못함.
 - 머지: https://celadon-dasik-31bda0.netlify.app/ (Drop으로 올린 첫 주소. 공개 설정과 이름 변경 여부는 확인 전)
 - 고친 뒤 다시 올릴 때: `python3 tools/build_tball.py`(또는 build_single.py) → 폴더에 index.html로 넣어 같은 사이트의 Deploys 화면에 끌어다 놓는다.
 
