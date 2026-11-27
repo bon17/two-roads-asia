@@ -134,6 +134,7 @@ input.code{font-family:inherit;font-size:40px;text-align:center;width:100%;max-w
 /* =================== 교사(TV) 화면 =================== */
 #host{position:fixed;inset:0;display:flex;flex-direction:column;padding:1.2vh 1.2vw calc(1.2vh + var(--badge));gap:1.2vh;font-size:min(1.05vw,1.9vh)}
 #host .btn{font-size:1.5em;min-height:3.4em;padding:0 1.1em;border-radius:.9em}
+#host .btn.sm{font-size:1.2em;min-height:3.6em;padding:0 .8em}
 .h-score{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:1.2em;padding:.5em 1.2em}
 .h-team{display:flex;align-items:center;gap:.8em}
 .h-team.jp{flex-direction:row-reverse;text-align:right}
@@ -3241,6 +3242,12 @@ function moveTeam(id) {
   const p = H.players[id]; if (!p) return;
   H.db.update(R("players"), { [`${id}/team`]: other(p.team) });
 }
+async function newRoom() {
+  if (!confirm(`지금 방(${H.code})을 닫고 새 방을 만들까요?\n들어와 있던 학생들은 TV에 새로 뜨는 방 번호로 다시 들어와야 해요.`)) return;
+  try { await H.db.set(R("state"), { phase: "closed" }); } catch (e) { }   // 학생 기기에 '방이 닫혔어요'를 알린다
+  store.set("hostRoom", "");
+  location.reload();
+}
 async function kickPlayer(id) {
   if (!confirm(`${id} 학생을 내보낼까요?\n그 학생 태블릿은 학번 입력 화면으로 돌아가서 다시 입장해요.`)) return;
   const p = H.players[id];
@@ -3473,6 +3480,7 @@ function rulePages() {
       <tr><td>🏁 마지막 회</td><td>이번 회가 끝나면 경기 종료 (다시 누르면 취소)</td><td>경기 중</td></tr>
       <tr><td>경기 끝</td><td>바로 끝내고 결과 보기</td><td>경기 중</td></tr>
       <tr><td>새 경기</td><td>점수를 지우고 다시 (학생은 그대로)</td><td>끝난 뒤</td></tr>
+      <tr><td>🚪 새 방 만들기</td><td>지금 방을 닫고 새 방 번호·QR을 만들어요 (학생은 새 번호로 다시 입장)</td><td>시작 전 · 끝난 뒤</td></tr>
      </table>`,
   ];
 }
@@ -3548,18 +3556,19 @@ function renderCtrl() {
   if (H.db && H.db.mode === "local") c.append(mk("div", "modepill", "연습 모드"));
   const n = present("cn").length + present("jp").length;
   if (s.phase === "lobby") {
-    c.append(mk("div", "info", `접속 ${n}명 · 방 ${H.code}`), mk("div", "sp"));
-    c.append(ctrlButton("📖 게임 방법", "", () => openRules(0)));
+    c.append(mk("div", "sp"));
+    c.append(ctrlButton("📖 게임 방법", "sm", () => openRules(0)));
     c.append(timeButton());
-    if (!IN_FRAME) c.append(ctrlButton("🧪 테스트 모드", "", () => window.open(location.pathname + "?test", "_blank")));
+    if (!IN_FRAME) c.append(ctrlButton("🚪 새 방 만들기", "sm", newRoom));
+    if (!IN_FRAME) c.append(ctrlButton("🧪 테스트 모드", "sm", () => window.open(location.pathname + "?test", "_blank")));
     c.append(ctrlButton("연습 문제", "", () => startPitch(true), n === 0),
       ctrlButton("⚾ 경기 시작", "gold", () => startPitch(false), present("cn").length === 0 || present("jp").length === 0));
   } else if (s.phase === "ready") {
     c.append(mk("div", "info", s.finalReq ? "🏁 마지막 회 진행 중" : `접속 ${n}명`), mk("div", "sp"),
-      ctrlButton("📖 게임 방법", "", () => openRules(3)),
+      ctrlButton("📖 게임 방법", "sm", () => openRules(3)),
       timeButton(),
-      ctrlButton("👥 학생 관리", "", toggleRoster),
-      ctrlButton(s.finalReq ? "🏁 마지막 회 취소" : "🏁 마지막 회", "", () => putState({ finalReq: !s.finalReq })),
+      ctrlButton("👥 학생 관리", "sm", toggleRoster),
+      ctrlButton(s.finalReq ? "🏁 마지막 회 취소" : "🏁 마지막 회", "sm", () => putState({ finalReq: !s.finalReq })),
       ctrlButton("⚾ 투구", "gold", () => startPitch(false)));
   } else if (s.phase === "pitch") {
     c.append(mk("div", "info", s.practice ? "연습 문제예요 (점수에 들어가지 않아요)" : ""), mk("div", "sp"),
@@ -3568,23 +3577,24 @@ function renderCtrl() {
     const waitCard = !s.practice && s.started && !s.cardPlay && s.captain[other(offenseOf(s))] &&
       CARD_KEYS.some(k => cardAllowed(s, other(offenseOf(s)), k));
     c.append(mk("div", "info", waitCard ? `🧢 수비 주장 ${s.captain[other(offenseOf(s))]}이(가) 조약 카드를 쓸 수 있어요` : ""), mk("div", "sp"),
-      ctrlButton(H.exOpen ? "💡 해설 닫기" : "💡 해설", "", () => { H.exOpen = !H.exOpen; renderExplainHost(); renderCtrl(); }),
-      ctrlButton("👥 학생 관리", "", toggleRoster));
-    if (s.started && !s.practice) c.append(ctrlButton(s.finalReq ? "🏁 마지막 회 취소" : "🏁 마지막 회", "", () => putState({ finalReq: !s.finalReq })));
+      ctrlButton(H.exOpen ? "💡 해설 닫기" : "💡 해설", "sm", () => { H.exOpen = !H.exOpen; renderExplainHost(); renderCtrl(); }),
+      ctrlButton("👥 학생 관리", "sm", toggleRoster));
+    if (s.started && !s.practice) c.append(ctrlButton(s.finalReq ? "🏁 마지막 회 취소" : "🏁 마지막 회", "sm", () => putState({ finalReq: !s.finalReq })));
     c.append(ctrlButton(s.practice || !s.started ? "확인 ▶" : (s.outs >= 3 ? "공수 교대 ▶" : "다음 투구 ▶"), "gold", nextAfterReveal));
   } else if (s.phase === "over") {
-    c.append(mk("div", "sp"), ctrlButton("새 경기", "", async () => {
+    c.append(mk("div", "sp"), ctrlButton("새 경기", "sm", async () => {
       if (!confirm("점수를 지우고 새 경기를 시작할까요? (학생들은 그대로 남아요)")) return;
       await H.db.remove(R("answers")); await H.db.set(R("state"), { phase: "lobby" });
     }));
+    if (!IN_FRAME) c.append(ctrlButton("🚪 새 방 만들기", "sm", newRoom));
   }
   if (s.phase !== "lobby" && s.phase !== "over") {
-    c.append(ctrlButton("경기 끝", "", () => { if (confirm("지금 경기를 끝내고 결과를 볼까요?")) finishGame(); }));
+    c.append(ctrlButton("경기 끝", "sm", () => { if (confirm("지금 경기를 끝내고 결과를 볼까요?")) finishGame(); }));
   }
 }
 function timeButton() {
   const s = H.st;
-  return ctrlButton(`⏱ 문제 시간 ${s.limit}초`, "", () => putState({ limit: LIMITS[(LIMITS.indexOf(s.limit) + 1) % LIMITS.length] }));
+  return ctrlButton(`⏱ 문제 시간 ${s.limit}초`, "sm", () => putState({ limit: LIMITS[(LIMITS.indexOf(s.limit) + 1) % LIMITS.length] }));
 }
 let rosterOpen = false;
 function toggleRoster() { rosterOpen = !rosterOpen; renderHost(); }
@@ -3756,7 +3766,11 @@ function renderJoinStep() {
 }
 async function openRoom(code) {
   S.db = S.db || await connect();
-  return await S.db.get(`rooms/${code}/meta`);
+  const meta = await S.db.get(`rooms/${code}/meta`);
+  if (!meta) return null;
+  const st = await S.db.get(`rooms/${code}/state`);
+  if (st && st.phase === "closed") throw Object.assign(new Error("closed"), { closed: true });
+  return meta;
 }
 async function checkRoom() {
   const err = $("#sErr");
@@ -3765,7 +3779,10 @@ async function checkRoom() {
   try {
     if (!(await openRoom(S.roomIn))) { err.textContent = "그런 방이 없어요. 선생님 TV의 번호를 다시 확인해요"; return; }
     S.step = "id"; S.id = store.get("room", "") === S.roomIn ? store.get("sid", "") : ""; renderJoinStep();
-  } catch (e) { S.db = null; err.textContent = "연결에 실패했어요. 다시 눌러 주세요. (" + explain(e) + ")"; }
+  } catch (e) {
+    if (e && e.closed) { err.textContent = "이미 닫힌 방이에요. 선생님 TV의 새 방 번호를 확인해요"; return; }
+    S.db = null; err.textContent = "연결에 실패했어요. 다시 눌러 주세요. (" + explain(e) + ")";
+  }
   finally { S.busyJoin = false; $("#sNext").disabled = false; }
 }
 async function join() {
@@ -3786,16 +3803,20 @@ async function join() {
       else S.me = null;
       renderStudent();
     });
-    S.unS = S.db.on(`rooms/${code}/state`, v => { S.st = normState(v); watchMyAnswer(); renderStudent(); });
+    S.unS = S.db.on(`rooms/${code}/state`, v => {
+      if (v && v.phase === "closed") { kicked(false, true); return; }
+      S.st = normState(v); watchMyAnswer(); renderStudent();
+    });
     S.tick = setInterval(tickStudent, 250);
   } catch (e) {
+    if (e && e.closed) { err.textContent = "이미 닫힌 방이에요. 방 번호를 다시 넣어 주세요"; S.step = "room"; S.roomIn = ""; renderJoinStep(); return; }
     S.db = null;
     err.textContent = "연결에 실패했어요. 다시 눌러 주세요. (" + explain(e) + ")";
   } finally { S.busyJoin = false; $("#sNext").disabled = false; }
 }
 const SR = p => `rooms/${S.code}/${p}`;
 /* 선생님이 내보냈을 때: 연결을 정리하고 학번 입력 화면으로 */
-function kicked(ghost) {
+function kicked(ghost, closed) {
   const code = S.code, id = S.id;
   try { S.stopPres && S.stopPres(); } catch (e) { }
   [S.unP, S.unS, S.unAns].forEach(u => { try { u && u(); } catch (e) { } });
@@ -3804,8 +3825,13 @@ function kicked(ghost) {
   Object.assign(S, { code: "", me: null, seen: false, players: {}, st: normState(null), myAns: null, ansKey: "", unP: null, unS: null, unAns: null, stopPres: null, orderPick: [] });
   ["#sWait", "#sQ", "#sSent", "#sReveal", "#sOver", "#sTop", "#sExModal", "#sCardModal", "#sRulesModal"].forEach(x => show(x, false));
   store.set("sid", "");
-  S.id = ""; S.step = "id"; show("#sJoin", true); renderJoinStep();
-  $("#sNotice").textContent = "🔄 선생님이 다시 입장하라고 했어요. 내 학번을 다시 눌러 주세요."; show("#sNotice", true);
+  S.id = "";
+  if (closed) { store.set("room", ""); S.roomIn = ""; S.fromQR = false; S.step = "room"; }
+  else S.step = "id";
+  show("#sJoin", true); renderJoinStep();
+  $("#sNotice").textContent = closed ? "🚪 선생님이 방을 닫았어요. TV에 나온 새 방 번호를 눌러 주세요."
+    : "🔄 선생님이 다시 입장하라고 했어요. 내 학번을 다시 눌러 주세요.";
+  show("#sNotice", true);
 }
 function watchMyAnswer() {
   const key = S.st.q ? ansKey(S.st) : "";
